@@ -9,7 +9,7 @@ from TenancyManager import init_tenant_context
 from app import app
 from utils import *
 
-LOGGER = logging.getLogger('device-manager.' + __name__)
+LOGGER = logging.getLogger('image-manager.' + __name__)
 LOGGER.addHandler(logging.StreamHandler())
 LOGGER.setLevel(logging.INFO)
 

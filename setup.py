@@ -34,9 +34,9 @@ def get_requirements(reqfile):
 
 
 setuptools.setup(
-    name='DeviceManager',
-    description='Dojot device manager.',
-    version=':versiontools:DeviceManager:',
+    name='ImageManager',
+    description='Dojot image manager.',
+    version=':versiontools:ImageManager:',
 
     packages=setuptools.find_packages(),
     include_package_data=True,

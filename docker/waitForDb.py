@@ -3,7 +3,7 @@
 import psycopg2
 from time import sleep
 import argparse
-from DeviceManager.conf import CONFIG
+from ImageManager.conf import CONFIG
 
 
 def wait_for_db(db_args):

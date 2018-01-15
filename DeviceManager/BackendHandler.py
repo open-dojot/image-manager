@@ -1,5 +1,5 @@
 """
-    Defines common handler interface and implementations for devices
+    Defines common handler interface and implementations for images
 """
 
 import json
@@ -11,14 +11,14 @@ from utils import HTTPRequestError
 
 from KafkaNotifier import send_notification, DeviceEvent
 
-LOGGER = logging.getLogger('device-manager.' + __name__)
+LOGGER = logging.getLogger('image-manager.' + __name__)
 LOGGER.addHandler(logging.StreamHandler())
 LOGGER.setLevel(logging.DEBUG)
 
 
 # TODO: this actually is a symptom of bad responsability management.
-# All device bookkeeping should be performed on a single (perhaps this) service, with the
-# services that implement specific features referring back to the single device management
+# All image bookkeeping should be performed on a single (perhaps this) service, with the
+# services that implement specific features referring back to the single image management
 # service for their transient data.
 class BackendHandler(object):
     """
@@ -26,28 +26,28 @@ class BackendHandler(object):
         infrastructure.
     """
 
-    def create(self, device):
+    def create(self, image):
         """
-            Creates the given device on the implemented backend.
-            :param device: Dictionary with the full device configuration
+            Creates the given image on the implemented backend.
+            :param image: Dictionary with the full image configuration
             :returns: True if operation succeeded
             :raises HTTPRequestError
         """
         raise NotImplementedError('Abstract method called')
 
-    def remove(self, device_id):
+    def remove(self, image_id):
         """
-            Removes the device identified by the given id
-            :param device_id: unique identifier of the device to be removed
+            Removes the image identified by the given id
+            :param image_id: unique identifier of the image to be removed
             :raises HTTPRequestError
         """
         raise NotImplementedError('Abstract method called')
 
-    def update(self, device):
+    def update(self, image):
         """
-            Updates the given device on the implemented backend.
-            :param device: Dictionary with the full device configuration. Must contain an 'id'
-                           field with the unique identifier of the device to be updated. That
+            Updates the given image on the implemented backend.
+            :param image: Dictionary with the full image configuration. Must contain an 'id'
+                           field with the unique identifier of the image to be updated. That
                            field must not be changed.
             :raises HTTPRequestError
         """
@@ -69,30 +69,30 @@ class OrionHandler(BackendHandler):
         self._headers['Content-Type'] = 'application/json'
 
     @staticmethod
-    def parse_device(device, generated_id=False):
+    def parse_image(image, generated_id=False):
         body = {}
         type_descr = "template"
-        for dev_type in device['attrs'].keys():
+        for dev_type in image['attrs'].keys():
             type_descr += "_" + str(dev_type)
         if generated_id:
             body = {
                 "type": type_descr,
-                "id": device['id']
+                "id": image['id']
             }
-        for tpl in device['attrs']:
-            for attr in device['attrs'][tpl]:
+        for tpl in image['attrs']:
+            for attr in image['attrs'][tpl]:
                 body[attr['label']] = {"type": attr['value_type']}
 
         return body
 
-    def create_update_device(self, device, is_update=True):
-        target_url = "%s/%s/attrs?type=device" % (self.baseUrl, device['id'])
-        body = json.dumps(OrionHandler.parse_device(device, not is_update))
+    def create_update_image(self, image, is_update=True):
+        target_url = "%s/%s/attrs?type=image" % (self.baseUrl, image['id'])
+        body = json.dumps(OrionHandler.parse_image(image, not is_update))
         if not is_update:
             target_url = self.baseUrl
 
         try:
-            LOGGER.info("about to create device in ctx broker")
+            LOGGER.info("about to create image in ctx broker")
             LOGGER.debug("%s", body)
             response = requests.post(target_url, headers=self._headers, data=body)
             if 200 <= response.status_code < 300:
@@ -106,16 +106,16 @@ class OrionHandler(BackendHandler):
         except requests.ConnectionError:
             raise HTTPRequestError(500, "Broker is not reachable")
 
-    def create(self, device):
-        self.create_update_device(device, False)
+    def create(self, image):
+        self.create_update_image(image, False)
 
-    def remove(self, device_id):
-        # removal is ignored, thus leaving removed device data lingering in the system
+    def remove(self, image_id):
+        # removal is ignored, thus leaving removed image data lingering in the system
         # (this allows easier recovery/rollback of data by the user)
         pass
 
-    def update(self, device):
-        self.create_update_device(device)
+    def update(self, image):
+        self.create_update_image(image)
 
 
 class KafkaHandler:
@@ -123,34 +123,34 @@ class KafkaHandler:
     def __init__(self):
         pass
 
-    def create(self, device, meta):
+    def create(self, image, meta):
         """
-            Publishes event to kafka broker, notifying device creation
+            Publishes event to kafka broker, notifying image creation
         """
-        send_notification(DeviceEvent.CREATE, device, meta)
+        send_notification(DeviceEvent.CREATE, image, meta)
 
-    def remove(self, device_id, meta):
+    def remove(self, image_id, meta):
         """
-            Publishes event to kafka broker, notifying device removal
+            Publishes event to kafka broker, notifying image removal
         """
-        send_notification(DeviceEvent.REMOVE, device_id, meta)
+        send_notification(DeviceEvent.REMOVE, image_id, meta)
 
-    def update(self, device, meta):
+    def update(self, image, meta):
         """
-            Publishes event to kafka broker, notifying device update
+            Publishes event to kafka broker, notifying image update
         """
-        send_notification(DeviceEvent.UPDATE, device, meta)
+        send_notification(DeviceEvent.UPDATE, image, meta)
 
-    def configure(self, device, meta):
+    def configure(self, image, meta):
         """
-            Publishes event to kafka broker, notifying device configuration
+            Publishes event to kafka broker, notifying image configuration
         """
-        send_notification(DeviceEvent.CONFIGURE, device, meta)
+        send_notification(DeviceEvent.CONFIGURE, image, meta)
 
 
 # deprecated
 class IotaHandler(BackendHandler):
-    """ Abstracts interaction with iotagent-json for MQTT device management """
+    """ Abstracts interaction with iotagent-json for MQTT image management """
     # TODO: this should be configurable (via file or environment variable)
     def __init__(self, base_url='http://iotagent:4041/iot',
                  orion_url='http://orion:1026/v1/contextEntities',
@@ -170,34 +170,34 @@ class IotaHandler(BackendHandler):
             'cache-control': 'no-cache'
         }
 
-    def __get_topic(self, device):
+    def __get_topic(self, image):
 
-        if device.topic:
-            topic = device.topic
+        if image.topic:
+            topic = image.topic
         else:
-            topic = "/%s/%s/attrs" % (self.service, device.device_id)
+            topic = "/%s/%s/attrs" % (self.service, image.image_id)
 
         return topic
 
-    def __get_config(self, device):
+    def __get_config(self, image):
 
         base_config = {
             # this is actually consumed by iotagent
-            'device_id': device.device_id,
+            'image_id': image.image_id,
             # becomes entity type for context broker
-            'entity_type': 'device',
+            'entity_type': 'image',
             # becomes entity id for context broker
-            'entity_name': device.device_id,
+            'entity_name': image.image_id,
             'attributes': [],
             # this is actually consumed by iotagent
             'internal_attributes': {
                 "attributes" : [],
-                "timeout": {"periodicity": device.frequency, "waitMultiplier": 3}
+                "timeout": {"periodicity": image.frequency, "waitMultiplier": 3}
             },
             'static_attributes': []
         }
 
-        for attr in device.template.attrs:
+        for attr in image.template.attrs:
             if attr.type == 'dynamic':
                 base_config['attributes'].append({
                     'name': attr.label,
@@ -216,15 +216,15 @@ class IotaHandler(BackendHandler):
                 })
         return base_config
 
-    def create(self, device):
-        """ Returns boolean indicating device creation success. """
+    def create(self, image):
+        """ Returns boolean indicating image creation success. """
 
         try:
             svc = json.dumps({
                 "services": [{
                     "resource": "devm",
                     "apikey": self.service,
-                    "entity_type": 'device'
+                    "entity_type": 'image'
                 }]
             })
             response = requests.post(self.baseUrl + '/services', headers=self._headers, data=svc)
@@ -236,37 +236,37 @@ class IotaHandler(BackendHandler):
             raise HTTPRequestError(500, "Cannot reach ingestion subsystem (service)")
 
         try:
-            response = requests.post(self.baseUrl + '/devices', headers=self._headers,
-                                     data=json.dumps({'devices':[self.__get_config(device)]}))
+            response = requests.post(self.baseUrl + '/images', headers=self._headers,
+                                     data=json.dumps({'images':[self.__get_config(image)]}))
             if not (200 <= response.status_code < 300):
-                error = "Failed to configure ingestion subsystem: device creation failed"
+                error = "Failed to configure ingestion subsystem: image creation failed"
                 raise HTTPRequestError(500, error)
         except requests.ConnectionError:
-            raise HTTPRequestError(500, "Cannot reach ingestion subsystem (device)")
+            raise HTTPRequestError(500, "Cannot reach ingestion subsystem (image)")
 
-    def remove(self, deviceid):
-        """ Returns boolean indicating device removal success. """
+    def remove(self, imageid):
+        """ Returns boolean indicating image removal success. """
 
         try:
-            response = requests.delete(self.baseUrl + '/devices/' + deviceid,
+            response = requests.delete(self.baseUrl + '/images/' + imageid,
                                        headers=self._noBodyHeaders)
             if 200 <= response.status_code < 300:
-                response = requests.delete('%s/%s' % (self.orionUrl, deviceid),
+                response = requests.delete('%s/%s' % (self.orionUrl, imageid),
                                            headers=self._noBodyHeaders)
                 if not (200 <= response.status_code < 300):
-                    error = "Failed to configure ingestion subsystem: device removal failed"
+                    error = "Failed to configure ingestion subsystem: image removal failed"
                     raise HTTPRequestError(500, error)
         except requests.ConnectionError:
             raise HTTPRequestError(500, "Cannot reach ingestion subsystem")
 
-    def update(self, device):
-        """ Returns boolean indicating device update success. """
+    def update(self, image):
+        """ Returns boolean indicating image update success. """
 
-        self.remove(device.device_id)
-        return self.create(device)
+        self.remove(image.image_id)
+        return self.create(image)
 
 
-# Temporarily create a subscription to persist device data
+# Temporarily create a subscription to persist image data
 # TODO this must be revisited in favor of a orchestrator-based solution
 class PersistenceHandler(object):
     """
@@ -292,15 +292,15 @@ class PersistenceHandler(object):
             'cache-control': 'no-cache'
         }
 
-    def create(self, device_id, device_type='device'):
+    def create(self, image_id, image_type='image'):
         """ Returns subscription id on success. """
 
         try:
             svc = json.dumps({
                 "entities": [{
-                    "type": device_type,
+                    "type": image_type,
                     "isPattern": "false",
-                    "id": device_id
+                    "id": image_id
                 }],
                 "reference" : self.targetUrl,
                 "duration": "P10Y",

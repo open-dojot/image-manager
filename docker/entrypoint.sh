@@ -10,7 +10,7 @@ if [ $1 = 'start' ]; then
             exit 1
         fi
         docker/waitForDb.py
-        exec gunicorn DeviceManager.main:app \
+        exec gunicorn ImageManager.main:app \
                   --bind 0.0.0.0:5000 \
                   --reload -R \
                   --access-logfile - \

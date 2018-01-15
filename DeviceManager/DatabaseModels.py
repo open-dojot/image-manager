@@ -20,7 +20,7 @@ class DeviceTemplate(db.Model):
     updated = db.Column(db.DateTime, onupdate=datetime.now)
 
     attrs = db.relationship("DeviceAttr", back_populates="template", lazy='joined', cascade="delete")
-    devices = db.relationship("Device", secondary='device_template', back_populates="templates")
+    images = db.relationship("Device", secondary='image_template', back_populates="templates")
 
     def __repr__(self):
         return "<Template(label='%s')>" % self.label
@@ -47,7 +47,7 @@ class DeviceAttr(db.Model):
 
 
 class Device(db.Model):
-    __tablename__ = 'devices'
+    __tablename__ = 'images'
 
     id = db.Column(db.String(4), unique=True, nullable=False, primary_key=True)
     label = db.Column(db.String(128), nullable=False)
@@ -55,7 +55,7 @@ class Device(db.Model):
     updated = db.Column(db.DateTime, onupdate=datetime.now)
 
     # template_id = db.Column(db.Integer, db.ForeignKey('templates.id'), nullable=False)
-    templates = db.relationship("DeviceTemplate", secondary='device_template', back_populates="devices")
+    templates = db.relationship("DeviceTemplate", secondary='image_template', back_populates="images")
 
     persistence = db.Column(db.String(128))
 
@@ -64,16 +64,16 @@ class Device(db.Model):
 
 
 class DeviceTemplateMap(db.Model):
-    __tablename__ = 'device_template'
-    device_id = db.Column(db.String(4), db.ForeignKey('devices.id'), primary_key=True, index=True)
+    __tablename__ = 'image_template'
+    image_id = db.Column(db.String(4), db.ForeignKey('images.id'), primary_key=True, index=True)
     template_id = db.Column(db.Integer, db.ForeignKey('templates.id'), primary_key=True, index=True)
 
 
-def assert_device_exists(device_id):
+def assert_image_exists(image_id):
     try:
-        return Device.query.filter_by(id=device_id).one()
+        return Device.query.filter_by(id=image_id).one()
     except sqlalchemy.orm.exc.NoResultFound:
-        raise HTTPRequestError(404, "No such device: %s" % device_id)
+        raise HTTPRequestError(404, "No such image: %s" % image_id)
 
 
 def assert_template_exists(template_id):
@@ -83,11 +83,11 @@ def assert_template_exists(template_id):
         raise HTTPRequestError(404, "No such template: %s" % template_id)
 
 
-def assert_device_relation_exists(device_id, template_id):
+def assert_image_relation_exists(image_id, template_id):
     try:
-        return DeviceTemplateMap.query.filter_by(device_id=device_id, template_id=template_id).one()
+        return DeviceTemplateMap.query.filter_by(image_id=image_id, template_id=template_id).one()
     except sqlalchemy.orm.exc.NoResultFound:
-        raise HTTPRequestError(404, "Device %s is not associated with template %s" % (device_id, template_id))
+        raise HTTPRequestError(404, "Device %s is not associated with template %s" % (image_id, template_id))
 
 
 def handle_consistency_exception(error):

@@ -3,18 +3,18 @@ HOST: http://localhost:5000
 
 # Device Management API
 
-Device manager is responsible for management operations (CRUD) over devices and templates.
+Device manager is responsible for management operations (CRUD) over images and templates.
 
-All devices are created based on a *template*, which can be thought as a model of a device. As "model" we could think of part numbers or product models - one *prototype* from which devices are created. Templates in dojot have one label (any alphanumeric sequece), a list of attributes which will hold all the device emitted information, and optionally a few special attributes which will indicate how the device communicates, including transmission methods (protocol, ports, etc.) and message formats.
+All images are created based on a *template*, which can be thought as a model of a image. As "model" we could think of part numbers or product models - one *prototype* from which images are created. Templates in dojot have one label (any alphanumeric sequece), a list of attributes which will hold all the image emitted information, and optionally a few special attributes which will indicate how the image communicates, including transmission methods (protocol, ports, etc.) and message formats.
 
-In fact, templates can represent not only "device models", but it can also abstract a "class of devices". For instance, we could have one template to represent all themometers that will be used in dojot. This template would have only one attribute called, let's say, "temperature". While creating the device, the user would select its "physical template", let's say *TexasInstr882*, and the 'thermometer' template. The user would have also to add translation instructions in order to map the temperature reading that will be sent from the device to a "temperature" attribute.
+In fact, templates can represent not only "image models", but it can also abstract a "class of images". For instance, we could have one template to represent all themometers that will be used in dojot. This template would have only one attribute called, let's say, "temperature". While creating the image, the user would select its "physical template", let's say *TexasInstr882*, and the 'thermometer' template. The user would have also to add translation instructions in order to map the temperature reading that will be sent from the image to a "temperature" attribute.
 
-In order to create a device, a user selects which templates are going to compose this new device. All their attributes are merged together and associated to it - they are tightly linked to the original template so that any template update will reflect all associated devices.
+In order to create a image, a user selects which templates are going to compose this new image. All their attributes are merged together and associated to it - they are tightly linked to the original template so that any template update will reflect all associated images.
 
-This document describes the APIs using DeviceManager as a standalone process. If used with other dojot's components, the endpoints might be changed a bit. Check [dojot's documentation](http://dojotdocs.readthedocs.io/) to check all of them.
+This document describes the APIs using ImageManager as a standalone process. If used with other dojot's components, the endpoints might be changed a bit. Check [dojot's documentation](http://dojotdocs.readthedocs.io/) to check all of them.
 
 # Group Templates
-Before describing the device APIs, we must detail the template endpoints. As said before, templates are a way to describe the "device model", or, more abstractly, a "device class". These templates contains all the attributes that will be applied to the device. Always remember that they can (and eventually will) be merged into one to create a single device - they must not have attributes with the same name. If this is inevitable, a tag could be added to the attribute name and, while creating the device, translation instructions could be created in order to map each attribute from the incoming message to the appropriate device attribute.
+Before describing the image APIs, we must detail the template endpoints. As said before, templates are a way to describe the "image model", or, more abstractly, a "image class". These templates contains all the attributes that will be applied to the image. Always remember that they can (and eventually will) be merged into one to create a single image - they must not have attributes with the same name. If this is inevitable, a tag could be added to the attribute name and, while creating the image, translation instructions could be created in order to map each attribute from the incoming message to the appropriate image attribute.
 
 ## Templates [/template]
 
@@ -139,7 +139,7 @@ Access a specific template
     + id: `83af` (required, string) - The template ID
 
 ### Delete template [DELETE]
-Removes a template. If any device is based on the template being removed, then all its attributes will be also removed.
+Removes a template. If any image is based on the template being removed, then all its attributes will be also removed.
 + Response 200 (application/json)
 
             {
@@ -217,7 +217,7 @@ Retrieves all information from a specific template
 
 ### Update template info [PUT]
 Replaces all attributes from a specific template.
-All devices based on this template will be also updated.
+All images based on this template will be also updated.
 + Request (application/json)
     + Headers
 
@@ -307,11 +307,11 @@ All devices based on this template will be also updated.
 
 # Group Devices
 
-All these endpoints are related to CRUD operations over devices.
+All these endpoints are related to CRUD operations over images.
 
-## Devices [/device]
-### Get the current list of devices [GET /device{?page_size,page_num}]
-Get the full list of devices with all their associated attributes.
+## Devices [/image]
+### Get the current list of images [GET /image{?page_size,page_num}]
+Get the full list of images with all their associated attributes.
 Each attribute from *attrs* is the template ID from where the attributes came from.
 In this example, there is only one template (ID 1).
 + Parameters
@@ -325,7 +325,7 @@ In this example, there is only one template (ID 1).
 + Response 200 (application/json)
 
             {
-                "devices": [
+                "images": [
                     {
                         "attrs": {
                             "83af": [
@@ -378,8 +378,8 @@ In this example, there is only one template (ID 1).
                     "total": 1
                 }
             }
-### Get the current list of devices associated with given template [GET /device/template/{templateid}{?page_size,page_num}]
-Get the full list of devices that belong to a given template..
+### Get the current list of images associated with given template [GET /image/template/{templateid}{?page_size,page_num}]
+Get the full list of images that belong to a given template..
 + Parameters
   + templateid: 1 (integer, required)
   + page_size: 20 (integer, optional)
@@ -392,7 +392,7 @@ Get the full list of devices that belong to a given template..
 + Response 200 (application/json)
 
             {
-                "devices": [
+                "images": [
                     {
                         "attrs": {
                             "83af": [
@@ -446,11 +446,11 @@ Get the full list of devices that belong to a given template..
                 }
             }
 
-### Register a new device [POST /device{?count,verbose}]
-Register a new device. In this example, there is already a template (ID 1) which describes all the attributes to be applied to this device.
+### Register a new image [POST /image{?count,verbose}]
+Register a new image. In this example, there is already a template (ID 1) which describes all the attributes to be applied to this image.
 + Parameters
     + count: 3 (integer, optional)
-    + verbose: False (boolean, optional) Set to true if full device description is to be returned.
+    + verbose: False (boolean, optional) Set to true if full image description is to be returned.
 + Request (application/json)
     + Headers
 
@@ -459,28 +459,28 @@ Register a new device. In this example, there is already a template (ID 1) which
     + Body
 
             {
-              "label": "test_device",
+              "label": "test_image",
               "templates": [1]
             }
 
 + Response 200 (application/json)
 
             {
-              "devices": [
+              "images": [
                 {
                   "id": "68fc",
-                  "label": "test_device_0"
+                  "label": "test_image_0"
                 },
                 {
                   "id": "94dc",
-                  "label": "test_device_1"
+                  "label": "test_image_1"
                 },
                 {
                   "id": "1ebc",
-                  "label": "test_device_2"
+                  "label": "test_image_2"
                 }
               ],
-              "message": "devices created"
+              "message": "images created"
             }
 
 
@@ -494,7 +494,7 @@ Register a new device. In this example, there is already a template (ID 1) which
 
 + Response 400 (application/json)
 
-            {"status" : "device has missing fields"}
+            {"status" : "image has missing fields"}
 
 + Response 500 (application/json)
 
@@ -502,17 +502,17 @@ Register a new device. In this example, there is already a template (ID 1) which
 
 + Response 500 (application/json)
 
-            {"status" : "failed to configure device"}
+            {"status" : "failed to configure image"}
 
 
 
-## Device info [/device/{id}]
-Access a specific device
+## Device info [/image/{id}]
+Access a specific image
     + parameters
-      + id: (required, string) - The device ID
+      + id: (required, string) - The image ID
 
-### Get device info [GET]
-Retrieves all information from a specific device
+### Get image info [GET]
+Retrieves all information from a specific image
 + Request (application/json)
     + Headers
 
@@ -569,16 +569,16 @@ Retrieves all information from a specific device
 + Response 404 (application/json)
 
             {
-                "message": "No such device: aaaa",
+                "message": "No such image: aaaa",
                 "status": 404
             }
 
-### Delete device [DELETE]
-Removes a device
+### Delete image [DELETE]
+Removes a image
 + Response 200 (application/json)
 
             {
-                "removed_device": {
+                "removed_image": {
                     "attrs": {
                         "83af": [
                             {
@@ -628,13 +628,13 @@ Removes a device
 + Response 404 (application/json)
 
             {
-                "message": "No such device: aaaa",
+                "message": "No such image: aaaa",
                 "status": 404
             }
 
-### Update device info [PUT]
-Replaces all attributes from a specific device.
-- TODO: updating devices is not yet working properly.
+### Update image info [PUT]
+Replaces all attributes from a specific image.
+- TODO: updating images is not yet working properly.
 + Request (application/json)
     + Headers
 
@@ -643,9 +643,9 @@ Replaces all attributes from a specific device.
     + Body
 
             {
-                "device_id": "6888",
+                "image_id": "6888",
                 "frequency": 2000,
-                "label": "test-device",
+                "label": "test-image",
                 "protocol": "MQTT",
                 "template": "83af"
             }
@@ -653,11 +653,11 @@ Replaces all attributes from a specific device.
 + Response 200 (application/json)
 
             {
-                "device": {
+                "image": {
                     "updated": "2017-10-06T11:00:49.127223+00:00",
                     "protocol": "MQTT",
                     "created": "2017-10-06T10:48:18.220313+00:00",
-                    "label": "test-device",
+                    "label": "test-image",
                     "frequency": 2000,
                     "attrs": [
                         {
@@ -686,9 +686,9 @@ Replaces all attributes from a specific device.
                         }
                     ],
                     "template": 1,
-                    "device_id": "6888"
+                    "image_id": "6888"
                 },
-                "message": "device updated"
+                "message": "image updated"
             }
 
 + Response 400 (application/json)
@@ -697,8 +697,8 @@ Replaces all attributes from a specific device.
 
 + Response 404 (application/json)
 
-            {"status" : "given device was not found"}
+            {"status" : "given image was not found"}
 
 + Response 500 (application/json)
 
-            {"status" : "failed to update device configuration"}
+            {"status" : "failed to update image configuration"}

@@ -54,8 +54,8 @@ class DeviceSchema(Schema):
         return {key: value for key, value in data.items() if value is not None}
 
 
-device_schema = DeviceSchema()
-device_list_schema = DeviceSchema(many=True)
+image_schema = DeviceSchema()
+image_list_schema = DeviceSchema(many=True)
 
 
 def parse_payload(request, schema):

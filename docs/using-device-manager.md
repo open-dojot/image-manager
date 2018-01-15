@@ -1,11 +1,11 @@
-# Using DeviceManager
+# Using ImageManager
 
-Using DeviceManager is indeed simple: create a template with attributes and then create devices using that template. That's it.
+Using ImageManager is indeed simple: create a template with attributes and then create images using that template. That's it.
 This page will show how to do that.
 
 All examples in this page consider that all dojot's components are up and running (check [the documentation](http://dojotdocs.readthedocs.io/) for how to do that). All request will include a ```${JWT}``` variable - this was retrieved from [auth](https://github.com/dojot/auth) component.
 
-## Creating templates and devices
+## Creating templates and images
 
 Right off the bat, let's retrieve a token from `auth`:
 
@@ -23,11 +23,11 @@ curl -X POST http://localhost:8000/auth \
 
 This token will be stored in ```bash ${JWT}``` bash variable, referenced in all requests.
 
-*IMPORTANT*: Every request made with this token will be valid only for the tenant (user "service") associated with this token. For instance, listing created devices will return only those devices which were created using this tenant.
+*IMPORTANT*: Every request made with this token will be valid only for the tenant (user "service") associated with this token. For instance, listing created images will return only those images which were created using this tenant.
 
 -------------
 
-A template is, simply put, a model from which devices can be created. They can be merged to build a single device (or a set of devices). It is created by sending a HTTP request to DeviceManager:
+A template is, simply put, a model from which images can be created. They can be merged to build a single image (or a set of images). It is created by sending a HTTP request to ImageManager:
 
 ```bash
 curl -X POST http://localhost:8000/template \
@@ -206,10 +206,10 @@ curl -X GET http://localhost:8000/template -H "Authorization: Bearer ${JWT}"
 }
 ```
 
-Now devices can be created using these two templates. Such request would be:
+Now images can be created using these two templates. Such request would be:
 
 ```bash
-curl -X POST http://localhost:8000/device \
+curl -X POST http://localhost:8000/image \
 -H "Authorization: Bearer ${JWT}" \
 -H 'Content-Type:application/json' \
 -d ' {
@@ -217,7 +217,7 @@ curl -X POST http://localhost:8000/device \
     "1",
     "2"
   ],
-  "label": "device"
+  "label": "image"
 }'
 ```
 
@@ -225,7 +225,7 @@ The result is:
 
 ```json
 {
-  "device": {
+  "image": {
     "templates": [
       1,
       2
@@ -271,26 +271,26 @@ The result is:
       ]
     },
     "id": "b7bd",
-    "label": "device"
+    "label": "image"
   },
-  "message": "device created"
+  "message": "image created"
 }
 ```
 
-Notice how the resulting device is structured: it has a list of related templates (`template` attribute) and each of its attributes are separated by template ID: `temperature`, `pressure` and `model` are inside attribute `1` (ID of the first created template) and `gps` is inside attribute `2` (ID of the second template). The new device ID can be found in the `id` attribute, which is `b7bd`.
+Notice how the resulting image is structured: it has a list of related templates (`template` attribute) and each of its attributes are separated by template ID: `temperature`, `pressure` and `model` are inside attribute `1` (ID of the first created template) and `gps` is inside attribute `2` (ID of the second template). The new image ID can be found in the `id` attribute, which is `b7bd`.
 
 A few considerations must be made:
 
-- If the templates used to compose this new device had attributes with the same name, an error would be generated and the device would not be created.
-- If any of the related templates are removed, all its attributes will also be removed from the devices that were created using it. So be careful.
+- If the templates used to compose this new image had attributes with the same name, an error would be generated and the image would not be created.
+- If any of the related templates are removed, all its attributes will also be removed from the images that were created using it. So be careful.
 
-Let's retrieve this new device:
+Let's retrieve this new image:
 
 ```bash
-curl -X GET http://localhost:8000/device -H "Authorization: Bearer ${JWT}"
+curl -X GET http://localhost:8000/image -H "Authorization: Bearer ${JWT}"
 ```
 
-This request will list all created devices for the tenant.
+This request will list all created images for the tenant.
 
 ```json
 {
@@ -300,7 +300,7 @@ This request will list all created devices for the tenant.
     "total": 1,
     "page": 1
   },
-  "devices": [
+  "images": [
     {
       "templates": [
         1,
@@ -347,23 +347,23 @@ This request will list all created devices for the tenant.
         ]
       },
       "id": "b7bd",
-      "label": "device"
+      "label": "image"
     }
   ]
 }
 ```
 
-## Removing templates and devices
+## Removing templates and images
 
-Removing templates and devices is also very simple. Let's remove the device created previously:
+Removing templates and images is also very simple. Let's remove the image created previously:
 
 ```bash
-curl -X DELETE http://localhost:8000/device/b7bd -H "Authorization: Bearer ${JWT}" 
+curl -X DELETE http://localhost:8000/image/b7bd -H "Authorization: Bearer ${JWT}" 
 ```
 
 ```json
 {
-  "removed_device": {
+  "removed_image": {
     "templates": [
       1,
       2
@@ -409,7 +409,7 @@ curl -X DELETE http://localhost:8000/device/b7bd -H "Authorization: Bearer ${JWT
       ]
     },
     "id": "b7bd",
-    "label": "device"
+    "label": "image"
   },
   "result": "ok"
 }
@@ -459,4 +459,4 @@ curl -X DELETE http://localhost:8000/template/1 -H "Authorization: Bearer ${JWT}
 }
 ```
 
-These are the very basic operations performed by DeviceManager. All operations can be found in [API documentation](https://dojot.github.io/device-manager/apis.html).
+These are the very basic operations performed by ImageManager. All operations can be found in [API documentation](https://dojot.github.io/image-manager/apis.html).

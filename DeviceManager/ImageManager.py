@@ -1,5 +1,5 @@
 """
-    Handles CRUD operations for devices, and their configuration on the
+    Handles CRUD operations for images, and their configuration on the
     FIWARE backend
 """
 
@@ -19,39 +19,39 @@ from TenancyManager import init_tenant_context
 
 from app import app
 
-device = Blueprint('device', __name__)
+image = Blueprint('image', __name__)
 
-LOGGER = logging.getLogger('device-manager.' + __name__)
+LOGGER = logging.getLogger('image-manager.' + __name__)
 LOGGER.addHandler(logging.StreamHandler())
 LOGGER.setLevel(logging.INFO)
 
 
-def serialize_full_device(orm_device):
-    data = device_schema.dump(orm_device).data
+def serialize_full_image(orm_image):
+    data = image_schema.dump(orm_image).data
     data['attrs'] = {}
-    for template in orm_device.templates:
+    for template in orm_image.templates:
         data['attrs'][template.id] = attr_list_schema.dump(template.attrs).data
     return data
 
 
-def auto_create_template(json_payload, new_device):
-    if ('attrs' in json_payload) and (new_device.templates is None):
-        device_template = DeviceTemplate(label="device.%s template" % new_device.id)
-        db.session.add(device_template)
-        new_device.templates = [device_template]
-        load_attrs(json_payload['attrs'], device_template, DeviceAttr, db)
+def auto_create_template(json_payload, new_image):
+    if ('attrs' in json_payload) and (new_image.templates is None):
+        image_template = DeviceTemplate(label="image.%s template" % new_image.id)
+        db.session.add(image_template)
+        new_image.templates = [image_template]
+        load_attrs(json_payload['attrs'], image_template, DeviceAttr, db)
 
 
-def parse_template_list(template_list, new_device):
-    new_device.templates = []
+def parse_template_list(template_list, new_image):
+    new_image.templates = []
     for templateid in template_list:
-        new_device.templates.append(assert_template_exists(templateid))
+        new_image.templates.append(assert_template_exists(templateid))
 
 
-def generate_device_id():
+def generate_image_id():
     # TODO this is awful, makes me sad, but for now also makes demoing easier
-    # We might want to look into an auto-configuration feature for devices, such that ids are
-    # not input manually on devices
+    # We might want to look into an auto-configuration feature for images, such that ids are
+    # not input manually on images
     _attempts = 0
     generated_id = ''
     while _attempts < 10 and len(generated_id) == 0:
@@ -60,13 +60,13 @@ def generate_device_id():
         if Device.query.filter_by(id=new_id).first() is None:
             return new_id
 
-    raise HTTPRequestError(500, "Failed to generate unique device_id")
+    raise HTTPRequestError(500, "Failed to generate unique image_id")
 
 
-@device.route('/device', methods=['GET'])
-def get_devices():
+@image.route('/image', methods=['GET'])
+def get_images():
     """
-        Fetches known devices, potentially limited by a given value.
+        Fetches known images, potentially limited by a given value.
         Ordering might be user-configurable too.
     """
     try:
@@ -74,9 +74,9 @@ def get_devices():
 
         page_number, per_page = get_pagination(request)
         page = Device.query.paginate(page=page_number, per_page=per_page, error_out=False)
-        devices = []
+        images = []
         for d in page.items:
-            devices.append(serialize_full_device(d))
+            images.append(serialize_full_image(d))
 
         result = json.dumps({
             'pagination': {
@@ -85,7 +85,7 @@ def get_devices():
                 'has_next': page.has_next,
                 'next_page': page.next_num
             },
-            'devices': devices
+            'images': images
         })
         return make_response(result, 200)
     except HTTPRequestError as e:
@@ -95,9 +95,9 @@ def get_devices():
             return format_response(e.error_code, e.message)
 
 
-@device.route('/device', methods=['POST'])
-def create_device():
-    """ Creates and configures the given device (in json) """
+@image.route('/image', methods=['POST'])
+def create_image():
+    """ Creates and configures the given image (in json) """
     try:
         tenant = init_tenant_context(request, db)
         try:
@@ -105,32 +105,32 @@ def create_device():
             clength = len(str(count))
             verbose = request.args.get('verbose', 'false') in ['true', '1', 'True']
             if verbose and count != 1:
-                raise HTTPRequestError(400, "Verbose can only be used for single device creation")
+                raise HTTPRequestError(400, "Verbose can only be used for single image creation")
         except ValueError as e:
             LOGGER.error(e)
             raise HTTPRequestError(400, "If provided, count must be integer")
 
-        devices = []
+        images = []
         for i in range(0, count):
-            device_data, json_payload = parse_payload(request, device_schema)
-            device_data['id'] = generate_device_id()
-            device_data['label'] = device_data['label'] + "_%0*d" % (clength, i)
-            device_data.pop('templates', None)  # handled separately by parse_template_list
-            orm_device = Device(**device_data)
-            parse_template_list(json_payload.get('templates', []), orm_device)
-            auto_create_template(json_payload, orm_device)
-            db.session.add(orm_device)
+            image_data, json_payload = parse_payload(request, image_schema)
+            image_data['id'] = generate_image_id()
+            image_data['label'] = image_data['label'] + "_%0*d" % (clength, i)
+            image_data.pop('templates', None)  # handled separately by parse_template_list
+            orm_image = Device(**image_data)
+            parse_template_list(json_payload.get('templates', []), orm_image)
+            auto_create_template(json_payload, orm_image)
+            db.session.add(orm_image)
 
-            devices.append({'id': device_data['id'], 'label': device_data['label']})
+            images.append({'id': image_data['id'], 'label': image_data['label']})
 
-            full_device = serialize_full_device(orm_device)
+            full_image = serialize_full_image(orm_image)
 
             # TODO remove this in favor of kafka as data broker....
             ctx_broker_handler = OrionHandler(service=tenant)
-            ctx_broker_handler.create(full_device)
+            ctx_broker_handler.create(full_image)
 
             kafka_handler = KafkaHandler()
-            kafka_handler.create(full_device, meta={"service": tenant})
+            kafka_handler.create(full_image, meta={"service": tenant})
 
         try:
             db.session.commit()
@@ -139,24 +139,24 @@ def create_device():
 
         if verbose:
             result = json.dumps({
-                'message': 'device created',
-                'device': full_device
+                'message': 'image created',
+                'image': full_image
             })
         else:
             result = json.dumps({
-                'message': 'devices created',
-                'devices': devices
+                'message': 'images created',
+                'images': images
             })
 
         # TODO revisit iotagent notification procedure
         # protocol_handler = IotaHandler(service=tenant)
-        # device_type = "virtual"
-        # if orm_device.protocol != "virtual":
-        #     device_type = "device"
-        #     protocol_handler.create(orm_device)
+        # image_type = "virtual"
+        # if orm_image.protocol != "virtual":
+        #     image_type = "image"
+        #     protocol_handler.create(orm_image)
         # TODO revisit history management
         # subscription_handler = PersistenceHandler(service=tenant)
-        # orm_device.persistence = subscription_handler.create(orm_device.device_id, "device")
+        # orm_image.persistence = subscription_handler.create(orm_image.image_id, "image")
 
         return make_response(result, 200)
 
@@ -167,12 +167,12 @@ def create_device():
             return format_response(e.error_code, e.message)
 
 
-@device.route('/device/<deviceid>', methods=['GET'])
-def get_device(deviceid):
+@image.route('/image/<imageid>', methods=['GET'])
+def get_image(imageid):
     try:
         init_tenant_context(request, db)
-        orm_device = assert_device_exists(deviceid)
-        return make_response(json.dumps(serialize_full_device(orm_device)), 200)
+        orm_image = assert_image_exists(imageid)
+        return make_response(json.dumps(serialize_full_image(orm_image)), 200)
     except HTTPRequestError as e:
         if isinstance(e.message, dict):
             return make_response(json.dumps(e.message), e.error_code)
@@ -180,16 +180,16 @@ def get_device(deviceid):
             return format_response(e.error_code, e.message)
 
 
-@device.route('/device/<deviceid>', methods=['DELETE'])
-def remove_device(deviceid):
+@image.route('/image/<imageid>', methods=['DELETE'])
+def remove_image(imageid):
     try:
         init_tenant_context(request, db)
-        orm_device = assert_device_exists(deviceid)
-        data = serialize_full_device(orm_device)
-        db.session.delete(orm_device)
+        orm_image = assert_image_exists(imageid)
+        data = serialize_full_image(orm_image)
+        db.session.delete(orm_image)
         db.session.commit()
 
-        results = json.dumps({'result': 'ok', 'removed_device': data})
+        results = json.dumps({'result': 'ok', 'removed_image': data})
         return make_response(results, 200)
     except HTTPRequestError as e:
         if isinstance(e.message, dict):
@@ -198,17 +198,17 @@ def remove_device(deviceid):
             return format_response(e.error_code, e.message)
 
 
-@device.route('/device/<deviceid>', methods=['PUT'])
-def update_device(deviceid):
+@image.route('/image/<imageid>', methods=['PUT'])
+def update_image(imageid):
     try:
         tenant = init_tenant_context(request, db)
-        old_device = assert_device_exists(deviceid)
+        old_image = assert_image_exists(imageid)
 
-        device_data, json_payload = parse_payload(request, device_schema)
-        device_data.pop('templates')
-        updated_device = Device(**device_data)
-        parse_template_list(json_payload.get('templates', []), updated_device)
-        updated_device.id = deviceid
+        image_data, json_payload = parse_payload(request, image_schema)
+        image_data.pop('templates')
+        updated_image = Device(**image_data)
+        parse_template_list(json_payload.get('templates', []), updated_image)
+        updated_image.id = imageid
 
         # update sanity check
         if 'attrs' in json_payload:
@@ -217,37 +217,37 @@ def update_device(deviceid):
 
         # TODO revisit iotagent notification mechanism
         # protocolHandler = IotaHandler(service=tenant)
-        # device_type = 'virtual'
-        # old_type = old_device.protocol
-        # new_type = updated_device.protocol
+        # image_type = 'virtual'
+        # old_type = old_image.protocol
+        # new_type = updated_image.protocol
         # if (old_type != 'virtual') and (new_type != 'virtual'):
-        #     device_type = 'device'
-        #     protocolHandler.update(updated_device)
+        #     image_type = 'image'
+        #     protocolHandler.update(updated_image)
         # if old_type != new_type:
         #     if old_type == 'virtual':
-        #         device_type = 'device'
-        #         protocolHandler.create(updated_device)
+        #         image_type = 'image'
+        #         protocolHandler.create(updated_image)
         #     elif new_type == 'virtual':
-        #         protocolHandler.remove(updated_device.id)
+        #         protocolHandler.remove(updated_image.id)
 
-        # TODO revisit device data persistence
+        # TODO revisit image data persistence
         # subsHandler = PersistenceHandler(service=tenant)
-        # subsHandler.remove(old_device.persistence)
-        # updated_device.persistence = subsHandler.create(deviceid, device_type)
+        # subsHandler.remove(old_image.persistence)
+        # updated_image.persistence = subsHandler.create(imageid, image_type)
 
         # TODO remove this in favor of kafka as data broker....
         ctx_broker_handler = OrionHandler(service=tenant)
-        ctx_broker_handler.update(serialize_full_device(old_device))
+        ctx_broker_handler.update(serialize_full_image(old_image))
 
-        db.session.delete(old_device)
-        db.session.add(updated_device)
+        db.session.delete(old_image)
+        db.session.add(updated_image)
 
         try:
             db.session.commit()
         except IntegrityError as error:
             handle_consistency_exception(error)
 
-        result = {'message': 'device updated', 'device': serialize_full_device(updated_device)}
+        result = {'message': 'image updated', 'image': serialize_full_image(updated_image)}
         return make_response(json.dumps(result))
 
     except HTTPRequestError as e:
@@ -257,20 +257,20 @@ def update_device(deviceid):
             return format_response(e.error_code, e.message)
 
 
-@device.route('/device/<deviceid>/attrs', methods=['PUT'])
-def configure_device(deviceid):
+@image.route('/image/<imageid>/attrs', methods=['PUT'])
+def configure_image(imageid):
     try:
         tenant = init_tenant_context(request, db)
-        # In fact, the actual device is not needed. We must be sure that it exists.
-        assert_device_exists(deviceid)
+        # In fact, the actual image is not needed. We must be sure that it exists.
+        assert_image_exists(imageid)
         json_payload = json.loads(request.data)
         kafka_handler = KafkaHandler()
-        # Remove topic metadata from JSON to be sent to the device
+        # Remove topic metadata from JSON to be sent to the image
         # Should this be moved to a HTTP header?
         topic = json_payload["topic"]
         del json_payload["topic"]
 
-        kafka_handler.configure(json_payload, meta = { "service" : tenant, "id" : deviceid, "topic": topic})
+        kafka_handler.configure(json_payload, meta = { "service" : tenant, "id" : imageid, "topic": topic})
 
         result = {'message': 'configuration sent'}
         return make_response(result, 200)
@@ -283,23 +283,23 @@ def configure_device(deviceid):
 
 
 # Convenience template ops
-@device.route('/device/<deviceid>/template/<templateid>', methods=['POST'])
-def add_template_to_device(deviceid, templateid):
-    """ associates given template with device """
+@image.route('/image/<imageid>/template/<templateid>', methods=['POST'])
+def add_template_to_image(imageid, templateid):
+    """ associates given template with image """
 
     try:
         tenant = init_tenant_context(request, db)
-        orm_device = assert_device_exists(deviceid)
+        orm_image = assert_image_exists(imageid)
         orm_template = assert_template_exists(templateid)
 
-        orm_device.templates.append(orm_template)
+        orm_image.templates.append(orm_template)
 
         try:
             db.session.commit()
         except IntegrityError as error:
             handle_consistency_exception(error)
 
-        result = {'message': 'device updated', 'device': serialize_full_device(orm_device)}
+        result = {'message': 'image updated', 'image': serialize_full_image(orm_image)}
         return make_response(json.dumps(result))
     except HTTPRequestError as e:
         if isinstance(e.message, dict):
@@ -308,20 +308,20 @@ def add_template_to_device(deviceid, templateid):
             return format_response(e.error_code, e.message)
 
 
-@device.route('/device/<deviceid>/template/<templateid>', methods=['DELETE'])
-def remove_template_from_device(deviceid, templateid):
-    """ removes given template from device """
+@image.route('/image/<imageid>/template/<templateid>', methods=['DELETE'])
+def remove_template_from_image(imageid, templateid):
+    """ removes given template from image """
     try:
         tenant = init_tenant_context(request, db)
-        device = assert_device_exists(deviceid)
-        relation = assert_device_relation_exists(deviceid, templateid)
+        image = assert_image_exists(imageid)
+        relation = assert_image_relation_exists(imageid, templateid)
 
         # Here (for now) there are no more validations to perform, as template removal
         # cannot violate attribute constraints
 
         db.session.remove(relation)
         db.session.commit()
-        result = {'message': 'device updated', 'device': serialize_full_device(device)}
+        result = {'message': 'image updated', 'image': serialize_full_image(image)}
         return make_response(json.dumps(result))
     except HTTPRequestError as e:
         if isinstance(e.message, dict):
@@ -330,7 +330,7 @@ def remove_template_from_device(deviceid, templateid):
             return format_response(e.error_code, e.message)
 
 
-@device.route('/device/template/<templateid>', methods=['GET'])
+@image.route('/image/template/<templateid>', methods=['GET'])
 def get_by_template(templateid):
     try:
         init_tenant_context(request, db)
@@ -342,9 +342,9 @@ def get_by_template(templateid):
             .filter_by(template_id=templateid)
             .paginate(page=page_number, per_page=per_page, error_out=False)
         )
-        devices = []
+        images = []
         for d in page.items:
-            devices.append(serialize_full_device(d))
+            images.append(serialize_full_image(d))
 
         result = json.dumps({
             'pagination': {
@@ -353,7 +353,7 @@ def get_by_template(templateid):
                 'has_next': page.has_next,
                 'next_page': page.next_num
             },
-            'devices': devices
+            'images': images
         })
         return make_response(result, 200)
     except HTTPRequestError as e:
@@ -363,4 +363,4 @@ def get_by_template(templateid):
             return format_response(e.error_code, e.message)
 
 
-app.register_blueprint(device)
+app.register_blueprint(image)

@@ -1,14 +1,14 @@
 #!/bin/bash
-devicemanager_img="jenkins/devicemanager:$(git log --pretty=format:'%h' -1)"
+imagemanager_img="jenkins/imagemanager:$(git log --pretty=format:'%h' -1)"
 
 iotagent_docker="iotagent-devm-jenkins"
-devicemanager_docker="devicemanager-devm-jenkins"
+imagemanager_docker="imagemanager-devm-jenkins"
 mosquitto_docker="mosquitto-devm-jenkins"
 orion_docker="orion-devm-jenkins"
 mongodb_docker="mongodb-devm-jenkins"
 
 iotagent_ip=""
-devicemanager_ip=""
+imagemanager_ip=""
 orion_ip=""
 mosquitto_ip=""
 mongodb_ip=""
@@ -50,8 +50,8 @@ function ping_hosts {
         return 1
     fi
 
-    ping -c 1 ${devicemanager_ip}
-    ping_host "http://${devicemanager_ip}:5000/device" "Device manager"
+    ping -c 1 ${imagemanager_ip}
+    ping_host "http://${imagemanager_ip}:5000/image" "Device manager"
     if [ $? -ne 0 ]; then
         return 1
     fi
@@ -63,7 +63,7 @@ function ping_hosts {
     fi
 
     ping -c 1 ${iotagent_ip}
-    ping_host "http://${iotagent_ip}:4041/iot/devices" "iotagent"
+    ping_host "http://${iotagent_ip}:4041/iot/images" "iotagent"
     if [ $? -ne 0 ]; then
         return 1
     fi
@@ -76,8 +76,8 @@ function ridiculously_simple_test {
             "services": [
             {
                 "resource": "/devm",
-                "apikey": "device-api",
-                "type": "device"
+                "apikey": "image-api",
+                "type": "image"
             }
             ]
         }' http://${iotagent_ip}:4041/iot/services)
@@ -97,10 +97,10 @@ exit(0)
         echo "Service created"
     fi
 
-    # Device creation in devicemanager
+    # Device creation in imagemanager
     sleep ${wait_time}
-    echo "Creating device"
-    ans=$(${curl} -X POST http://${devicemanager_ip}:5000/device --header 'Content-Type:application/json' --data '{ "id" : "dev002", "label": "barometer-01", "protocol" : "mqtt", "attrs" : [ { "object_id": "pressure", "name": "Pressure", "type": "atm" } ] }')
+    echo "Creating image"
+    ans=$(${curl} -X POST http://${imagemanager_ip}:5000/image --header 'Content-Type:application/json' --data '{ "id" : "dev002", "label": "barometer-01", "protocol" : "mqtt", "attrs" : [ { "object_id": "pressure", "name": "Pressure", "type": "atm" } ] }')
     echo ${ans} | python -c "
 import sys;
 import json;
@@ -111,7 +111,7 @@ if text['message'] != 'ok':
 exit(0)
 "
     if [ $? != 0 ]; then
-        echo "Could not create device"
+        echo "Could not create image"
         return 1
     else
         echo "Device created"
@@ -121,7 +121,7 @@ exit(0)
     # MQTT data publication
     sleep ${wait_time}
     echo "Publishing new data"
-    sudo docker exec ${mosquitto_docker} /usr/local/bin/mosquitto_pub -t /device-api/dev002/attrs -m '{"pressure":"1.04atm"}'
+    sudo docker exec ${mosquitto_docker} /usr/local/bin/mosquitto_pub -t /image-api/dev002/attrs -m '{"pressure":"1.04atm"}'
 
     # Reading new data in the broker
     sleep ${wait_time}
@@ -131,7 +131,7 @@ exit(0)
             {
                 "isPattern": "false",
                 "id": "barometer-01",
-                "type": "device"
+                "type": "image"
             }
         ]
     }' http://${orion_ip}:1026/NGSI10/queryContext)
@@ -161,25 +161,25 @@ function docker_start {
     echo "Starting all containers"
     docker-compose up -d
     sleep ${wait_time}
-    $docker run -d --name ${devicemanager_docker} --net tests_default --link ${iotagent_docker}:iotagent --link ${mongodb_docker}:mongodb ${devicemanager_img}
+    $docker run -d --name ${imagemanager_docker} --net tests_default --link ${iotagent_docker}:iotagent --link ${mongodb_docker}:mongodb ${imagemanager_img}
 }
 
 function docker_stop {
-    $docker kill ${devicemanager_docker}
-    $docker rm ${devicemanager_docker}
+    $docker kill ${imagemanager_docker}
+    $docker rm ${imagemanager_docker}
     docker-compose down
 }
 
 function retrieve_ips {
     iotagent_ip=$($docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${iotagent_docker})
-    devicemanager_ip=$($docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${devicemanager_docker})
+    imagemanager_ip=$($docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${imagemanager_docker})
     orion_ip=$($docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${orion_docker})
     mosquitto_ip=$($docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${mosquitto_docker})
     mongodb_ip=$($docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${mongodb_docker})
 
     echo "Services:"
     echo "iotagent: ${iotagent_ip}"
-    echo "devicemanager: ${devicemanager_ip}"
+    echo "imagemanager: ${imagemanager_ip}"
     echo "orion: ${orion_ip}"
     echo "mongo: ${mongodb_ip}"
     echo "mosquitto: ${mosquitto_ip}"
