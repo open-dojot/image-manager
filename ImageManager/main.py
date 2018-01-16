@@ -2,7 +2,6 @@ from app import app
 
 # initialize modules
 import ImageManager
-import TemplateManager
 import ErrorManager
 
 if __name__ == '__main__':
