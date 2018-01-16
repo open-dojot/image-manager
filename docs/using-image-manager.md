@@ -1,8 +1,5 @@
 # Using ImageManager
 
-Using ImageManager is indeed simple: create a template with attributes and then create images using that template. That's it.
-This page will show how to do that.
-
 All examples in this page consider that all dojot's components are up and running (check [the documentation](http://dojotdocs.readthedocs.io/) for how to do that). All request will include a ```${JWT}``` variable - this was retrieved from [auth](https://github.com/dojot/auth) component.
 
 ## Creating templates and images
@@ -27,69 +24,31 @@ This token will be stored in ```bash ${JWT}``` bash variable, referenced in all 
 
 -------------
 
-A template is, simply put, a model from which images can be created. They can be merged to build a single image (or a set of images). It is created by sending a HTTP request to ImageManager:
+So far an image stores only its metadata, follows a simple example of POST and GET
 
 ```bash
-curl -X POST http://localhost:8000/template \
+curl -X POST http://localhost:8000/image/ \
 -H "Authorization: Bearer ${JWT}" \
 -H 'Content-Type:application/json' \
 -d ' {
-  "label": "SuperTemplate",
-  "attrs": [
-    {
-      "label": "temperature",
-      "type": "dynamic",
-      "value_type": "float"
-    },
-    {
-      "label": "pressure",
-      "type": "dynamic",
-      "value_type": "float"
-    },
-    {
-      "label": "model",
-      "type": "static",
-      "value_type" : "string",
-      "static_value" : "SuperTemplate Rev01"
-    }
-  ]
+  "label": "ExampleFW",
+  "fw_version": "1.0.0-rc1",
+  "hw_version": "1.0.0-revA",
+  "sha1": "cf23df2207d99a74fbe169e3eba035e633b65d94"
 }'
 ```
-
--H "Authorization: Bearer ${JWT}" \
--H 'Content-Type:application/json' \
--d ' {
-  "label": "ExtraTemplate",
-  "attrs": [
-    {
-      "label": "gps",
-      "type": "dynamic",
-      "value_type": "geo"
-    }
-  ]
-}'
-
-```
-
-Which results in:
+The answer is:
 
 ```json
-{
-  "result": "ok",
-  "template": {
-    "created": "2018-01-05T15:47:02.993965+00:00",
-    "attrs": [
-      {
-        "template_id": "2",
-        "created": "2018-01-05T15:47:02.995541+00:00",
-        "label": "gps",
-        "value_type": "geo",
-        "type": "dynamic",
-        "id": 4
-      }
-    ],
-    "id": 2,
-    "label": "ExtraTemplate"
-  }
-}
+{"message": "image updated", "image": "1"}
+```
+
+
+```bash
+curl -X GET http://localhost:8000/image/1 -H "Authorization: Bearer ${JWT}" 
+```
+The answer is:
+
+```json
+{"message": "image updated", "image": "1"}
 ```

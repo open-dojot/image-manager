@@ -4,60 +4,6 @@ from sqlalchemy.sql import exists, select, text
 from utils import HTTPRequestError
 
 
-def install_triggers(db):
-    query = """
-        -- template update/creation checks
-
-        CREATE FUNCTION validate_image_attrs() returns trigger as $$
-        DECLARE
-          conflict_count int;
-        BEGIN
-          conflict_count := (
-            select count(*) from attrs as a
-            left join image_template as dt on a.template_id = dt.template_id
-            left join images as d on d.id = dt.image_id
-            where dt.template_id != NEW.template_id and
-                  dt.image_id in (select image_id from image_template where template_id = NEW.template_id) and
-                  a.label = NEW.label and a.type = NEW.type
-          );
-          IF (conflict_count != 0) THEN
-            RAISE 'Attribute % (%) has standing conflicts', NEW.label, NEW.id using ERRCODE = 'unique_violation';
-          END IF;
-          RETURN NEW;
-        END;
-        $$ language plpgsql;
-
-        CREATE TRIGGER validate_image_attrs_trigger BEFORE INSERT OR UPDATE ON attrs
-        FOR EACH ROW EXECUTE PROCEDURE validate_image_attrs();
-
-        -- template assignment checks
-
-        CREATE FUNCTION validate_image() returns trigger as $$
-        DECLARE
-          conflict_count int;
-        BEGIN
-          conflict_count := (
-            select count(*) from (
-              select * from attrs as attr
-              inner join image_template as dt on attr.template_id = dt.template_id
-              where dt.image_id = NEW.image_id
-            ) as curr
-            inner join attrs as nattrs on curr.label = nattrs.label and curr.type = nattrs.type and nattrs.template_id = NEW.template_id
-          );
-          IF (conflict_count != 0) THEN
-            RAISE 'Template (%) cannot be added to image (%) as it has standing attribute conflicts', NEW.template_id, NEW.image_id
-            using ERRCODE = 'unique_violation';
-          END IF;
-          RETURN NEW;
-        END;
-        $$ language plpgsql;
-
-        CREATE TRIGGER validate_image_trigger BEFORE INSERT OR UPDATE ON image_template
-        FOR EACH ROW EXECUTE PROCEDURE validate_image();
-    """
-    db.session.execute(query)
-
-
 def decode_base64(data):
     """Decode base64, padding being optional.
 
@@ -110,7 +56,7 @@ def init_tenant(tenant, db):
         create_tenant(tenant, db)
         switch_tenant(tenant, db)
         db.create_all()
-        install_triggers(db)
+        # install_triggers(db)
     else:
         switch_tenant(tenant, db)
 

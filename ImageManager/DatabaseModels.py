@@ -5,6 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 from app import app
 from utils import HTTPRequestError
 from conf import CONFIG
+from sqlalchemy.exc import IntegrityError
 
 app.config['SQLALCHEMY_DATABASE_URI'] = CONFIG.get_db_url()
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -24,7 +25,7 @@ class Image(db.Model):
 
     fw_version = db.Column(db.String(128), nullable=False)
     hw_version = db.Column(db.String(128), nullable=False)
-    sha1 = db.Column(db.String(160), nullable=False)
+    sha1 = db.Column(db.String(40), nullable=False)
 
     def __repr__(self):
         return "<Image(label={}, fw_version={}, hw_version={})>".format(self.label, self.fw_version, self.hw_version)

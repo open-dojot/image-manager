@@ -6,7 +6,7 @@ import os
 class Config(object):
     """ Abstracts configuration, either retrieved from environment or from ctor arguments """
     def __init__(self,
-                 db="dojot_devm",
+                 db="dojot_imgm",
                  dbhost="postgres",
                  dbuser="postgres",
                  dbpass=None,
