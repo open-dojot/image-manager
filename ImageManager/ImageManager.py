@@ -28,15 +28,9 @@ global_imageid = 20
 @image.route('/image/<imageid>', methods=['GET'])
 def get_image(imageid):
     try:
-        print(request)
         init_tenant_context(request, db)
         orm_image = assert_image_exists(imageid)
-        result = {
-            "label": orm_image.label,
-            "fw_version": orm_image.fw_version,
-            "hw_version": orm_image.hw_version,
-            "sha1": orm_image.sha1
-        }
+        result = image_schema.dump(orm_image).data
         return make_response(json.dumps(result), 200)
     except HTTPRequestError as e:
         if isinstance(e.message, dict):
