@@ -43,7 +43,7 @@ setuptools.setup(
     install_requires=get_requirements('requirements/requirements.txt'),
     setup_requires=('versiontools'),
 
-    author='Matheus Magalhaes',
-    author_email='matheusr@cpqd.com.br',
+    author='Juliano Siloto Assine',
+    author_email='jsiloto@cpqd.com.br',
     url='dojot.com.br',
 )
