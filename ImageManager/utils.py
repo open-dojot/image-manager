@@ -17,16 +17,10 @@ def format_response(status, message=None):
     return make_response(payload, status)
 
 
-def create_id():
-    """ Generates a random hex id for managed entities """
-    # TODO this is far too small for any practical deployment, but helps keep
-    #      the demo process simple
-    return '%04x' % random.randrange(16**4)
-
-
 # from auth service
 class HTTPRequestError(Exception):
     """ Exception that represents end of processing on any given request. """
+
     def __init__(self, error_code, message):
         super(HTTPRequestError, self).__init__()
         self.message = message

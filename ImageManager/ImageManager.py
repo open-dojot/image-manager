@@ -45,7 +45,7 @@ def create_image():
     try:
         tenant = init_tenant_context(request, db)
         image_data, json_payload = parse_payload(request, image_schema)
-        # imageid = generate_image_id()
+        # TODO Add a better id generation procedure
         global global_imageid
         imageid = str(global_imageid)
         global_imageid = global_imageid + 1
