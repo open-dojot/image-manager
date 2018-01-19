@@ -24,31 +24,87 @@ This token will be stored in ```bash ${JWT}``` bash variable, referenced in all 
 
 -------------
 
-So far an image stores only its metadata, follows a simple example of POST and GET
+This is a simple example featuring all 4 available methods POST/PUT/GET/DELETE.
+So far only the image's metadata is stored and the file itself is discarded
+
+-------------
+
+Create a simple application
 
 ```bash
-curl -X POST http://localhost:8000/image/ \
--H "Authorization: Bearer ${JWT}" \
--H 'Content-Type:application/json' \
--d ' {
+echo "0123456789" > example.hex
+```
+
+POST your example
+
+```bash
+curl -X POST \
+-F 'image=@./example.hex' \
+-F 'data={
   "label": "ExampleFW",
   "fw_version": "1.0.0-rc1",
   "hw_version": "1.0.0-revA",
   "sha1": "cf23df2207d99a74fbe169e3eba035e633b65d94"
-}'
+}' \
+-H "Authorization: Bearer ${JWT}" \
+http://localhost:8000/image/
 ```
 The answer is:
-
 ```json
-{"message": "image updated", "image": "1"}
+{"message": "image created", "image": "21"}
 ```
-
+You can also update your image using PUT
 
 ```bash
-curl -X GET http://localhost:8000/image/1 -H "Authorization: Bearer ${JWT}" 
+curl -X PUT \
+-F 'image=@./example.hex' \
+-F 'data={
+  "label": "ExampleFW",
+  "fw_version": "1.0.0-rc1",
+  "hw_version": "1.0.0-revA",
+  "sha1": "cf23df2207d99a74fbe169e3eba035e633b65d94"
+}' \
+-H "Authorization: Bearer ${JWT}" \
+http://localhost:8000/image/21
+
+```
+and get:
+```json
+{"message": "image updated", "image": "21"}
+```
+
+You can retrieve the image contents with GET
+```bash
+curl -X GET http://localhost:8000/image/21 -H "Authorization: Bearer ${JWT}" 
 ```
 The answer is:
-
 ```json
-{"message": "image updated", "image": "1"}
+{
+  "updated": "2018-01-19T21:35:12.822211+00:00",
+  "sha1": "cf23df2207d99a74fbe169e3eba035e633b65d94",
+  "hw_version": "1.0.0-revA",
+  "created": "2018-01-19T21:10:36.386000+00:00",
+  "fw_version": "1.0.0-rc1",
+  "label": "ExampleFW", 
+  "id": "21"
+}
+```
+
+And finally, you can delete your image
+```bash
+curl -X DELETE http://localhost:8000/image/21 -H "Authorization: Bearer ${JWT}" 
+```
+```json
+{
+  "result": "ok", 
+  "removed_image": {
+    "updated": "2018-01-19T21:35:12.822211+00:00",
+    "sha1": "cf23df2207d99a74fbe169e3eba035e633b65d94",
+    "hw_version": "1.0.0-revA",
+    "created": "2018-01-19T21:10:36.386000+00:00",
+    "fw_version": "1.0.0-rc1",
+    "label": "ExampleFW",
+    "id": "21"
+   }
+}
 ```

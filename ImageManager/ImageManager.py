@@ -60,10 +60,11 @@ def delete_image(imageid):
 
 @image.route('/image/', methods=['POST'])
 def create_image():
+    # print(request.__dict__)
     """ Creates and configures the given image (in json) """
     try:
         tenant = init_tenant_context(request, db)
-        image_data, json_payload = parse_payload(request, image_schema)
+        image_data, file_data, json_payload = parse_payload(request, image_schema)
         # TODO Add a better id generation procedure
         global global_imageid
         imageid = str(global_imageid)
@@ -96,7 +97,7 @@ def update_image(imageid):
         tenant = init_tenant_context(request, db)
         old_orm_image = assert_image_exists(imageid)
 
-        image_data, json_payload = parse_payload(request, image_schema)
+        image_data, file_data, json_payload = parse_payload(request, image_schema)
         image_data['id'] = imageid
 
         orm_image = Image(**image_data)
