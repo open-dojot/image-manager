@@ -1,6 +1,5 @@
 """
-    Handles CRUD operations for images, and their configuration on the
-    FIWARE backend
+    Handles CRUD operations for firmware binary images
 """
 
 import json
@@ -76,7 +75,6 @@ def create_image():
         else:
             result = {'message': 'image updated', 'image': imageid}
 
-        print("Operation Successful - result: {}".format(result))
         return make_response(json.dumps(result), 200)
 
     except HTTPRequestError as e:

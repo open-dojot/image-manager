@@ -9,9 +9,6 @@ from sqlalchemy.exc import IntegrityError
 
 app.config['SQLALCHEMY_DATABASE_URI'] = CONFIG.get_db_url()
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-print(app.config['SQLALCHEMY_DATABASE_URI'])
-
 db = SQLAlchemy(app)
 
 
