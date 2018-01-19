@@ -60,13 +60,6 @@ def create_image():
         orm_image = Image(**image_data)
         db.session.add(orm_image)
 
-        # # TODO remove this in favor of kafka as data broker....
-        # ctx_broker_handler = OrionHandler(service=tenant)
-        # ctx_broker_handler.create(full_image)
-        #
-        # kafka_handler = KafkaHandler()
-        # kafka_handler.create(full_image, meta={"service": tenant})
-
         try:
             db.session.commit()
         except IntegrityError as error:
