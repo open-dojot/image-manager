@@ -39,6 +39,25 @@ def get_image(imageid):
             return format_response(e.error_code, e.message)
 
 
+@image.route('/image/<imageid>', methods=['DELETE'])
+def delete_image(imageid):
+    try:
+        init_tenant_context(request, db)
+        orm_image = assert_image_exists(imageid)
+        data = image_schema.dump(orm_image).data
+
+        db.session.delete(orm_image)
+        db.session.commit()
+
+        result = json.dumps({'result': 'ok', 'removed_image': data})
+        return make_response(result, 200)
+    except HTTPRequestError as e:
+        if isinstance(e.message, dict):
+            return make_response(json.dumps(e.message), e.error_code)
+        else:
+            return format_response(e.error_code, e.message)
+
+
 @image.route('/image/', methods=['POST'])
 def create_image():
     """ Creates and configures the given image (in json) """
@@ -52,6 +71,36 @@ def create_image():
         image_data['id'] = imageid
 
         orm_image = Image(**image_data)
+        db.session.add(orm_image)
+
+        try:
+            db.session.commit()
+        except IntegrityError as error:
+            handle_consistency_exception(error)
+
+        else:
+            result = {'message': 'image created', 'image': imageid}
+
+        return make_response(json.dumps(result), 200)
+
+    except HTTPRequestError as e:
+        if isinstance(e.message, dict):
+            return make_response(json.dumps(e.message), e.error_code)
+        else:
+            return format_response(e.error_code, e.message)
+
+
+@image.route('/image/<imageid>', methods=['PUT'])
+def update_image(imageid):
+    try:
+        tenant = init_tenant_context(request, db)
+        old_orm_image = assert_image_exists(imageid)
+
+        image_data, json_payload = parse_payload(request, image_schema)
+        image_data['id'] = imageid
+
+        orm_image = Image(**image_data)
+        db.session.delete(old_orm_image)
         db.session.add(orm_image)
 
         try:
