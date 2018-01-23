@@ -9,7 +9,7 @@ from ImageManager.conf import CONFIG
 def wait_for_db(db_args):
     """ blocks execution until database is ready """
 
-    print 'Waiting for database to become available...'
+    print('Waiting for database to become available...')
     retries = db_args.retries
     while retries > 0:
         try:
@@ -20,12 +20,12 @@ def wait_for_db(db_args):
                 cursor = connection.cursor()
                 cursor.execute("select true from pg_database where datname = '%s';" % CONFIG.dbname)
                 if len(cursor.fetchall()) == 0:
-                    print "will attempt to create database"
+                    print("will attempt to create database")
                     cursor.execute("CREATE database %s;" % CONFIG.dbname)
-            print "Ready to go"
+            print("Ready to go")
             exit(0)
         except psycopg2.Error as e:
-            print "Database connection error | %s" % e.pgerror
+            print("Database connection error | %s" % e.pgerror)
 
         retries -= 1
         print('Will try again in ' + str(db_args.wait))

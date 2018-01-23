@@ -2,7 +2,7 @@
 
 import json
 from flask import make_response
-from app import app
+from .app import app
 
 
 @app.errorhandler(404)

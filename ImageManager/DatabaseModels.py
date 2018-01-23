@@ -2,9 +2,9 @@ from datetime import datetime
 import re
 import sqlalchemy
 from flask_sqlalchemy import SQLAlchemy
-from app import app
-from utils import HTTPRequestError
-from conf import CONFIG
+from .app import app
+from .utils import HTTPRequestError
+from .conf import CONFIG
 from sqlalchemy.exc import IntegrityError
 
 app.config['SQLALCHEMY_DATABASE_URI'] = CONFIG.get_db_url()

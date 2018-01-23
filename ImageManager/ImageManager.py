@@ -9,13 +9,13 @@ from flask import request
 from flask import make_response
 from flask import redirect, url_for
 from flask import Blueprint
-from utils import *
+from .utils import *
 
-from DatabaseModels import *
-from SerializationModels import *
-from TenancyManager import init_tenant_context
+from .DatabaseModels import *
+from .SerializationModels import *
+from .TenancyManager import init_tenant_context
 
-from app import app
+from .app import app
 
 import uuid
 
