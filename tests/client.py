@@ -41,3 +41,19 @@ headers = {'Authorization': 'Bearer ' + jwt_token}
 files = {'image': open('example.hex', 'rb')}
 r = requests.post(url, files=files, headers=headers)
 print(r.text)
+
+
+# Upload File Again to see the error
+headers = {'Authorization': 'Bearer ' + jwt}
+files = {'image': open('example.hex', 'rb')}
+r = requests.post(url, files=files, headers=headers)
+print(r.text)
+
+# Get the metadata
+meta_url = url + '/meta'
+r = requests.get(meta_url, headers=headers)
+print(r.text)
+
+# Get the file content
+r = requests.get(url, headers=headers)
+print(r.text)

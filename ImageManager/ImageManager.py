@@ -9,6 +9,7 @@ from time import time
 from flask import request
 from flask import make_response
 from flask import redirect, url_for
+from flask import send_from_directory
 from flask import Blueprint
 from werkzeug.utils import secure_filename
 from minio.error import ResponseError
@@ -36,6 +37,21 @@ def get_image(imageid):
         orm_image = assert_image_exists(imageid)
         result = image_schema.dump(orm_image).data
         return make_response(json.dumps(result), 200)
+    except HTTPRequestError as e:
+        if isinstance(e.message, dict):
+            return make_response(json.dumps(e.message), e.error_code)
+        else:
+            return format_response(e.error_code, e.message)
+
+
+@image.route('/image/<imageid>/binary', methods=['GET'])
+def get_image_binary(imageid):
+    try:
+        init_tenant_context(request, db, minioClient)
+        orm_image = assert_image_exists(imageid)
+        filename = imageid + '.hex'
+        return send_from_directory(directory='/tmp/', filename=filename)
+
     except HTTPRequestError as e:
         if isinstance(e.message, dict):
             return make_response(json.dumps(e.message), e.error_code)
@@ -123,7 +139,6 @@ def upload_image(imageid):
 
     except HTTPRequestError as e:
         db.session.rollback()
-        minioClient.remove_object(tenant, filename)
         if isinstance(e.message, dict):
             return make_response(json.dumps(e.message), e.error_code)
         else:
