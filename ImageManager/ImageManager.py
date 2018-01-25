@@ -101,7 +101,7 @@ def create_image():
 
         else:
             result = {'message': 'image created, awaiting upload',
-                      'url': url_for('image.update_image', imageid=imageid)}
+                      'url': url_for('image.upload_image', imageid=imageid)}
 
         Timer(UPLOAD_TIMEOUT, confirm_image_uploaded, [imageid]).start()
         return make_response(json.dumps(result), 200)
@@ -118,6 +118,9 @@ def upload_image(imageid):
     try:
         tenant = init_tenant_context(request, db)
         orm_image = assert_image_exists(imageid)
+        if orm_image.confirmed:
+            raise HTTPRequestError(400, "Binary already exists")
+
         orm_image.confirmed = True
         file_data = parse_form_payload(request)
 
