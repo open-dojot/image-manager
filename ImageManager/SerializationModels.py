@@ -13,6 +13,7 @@ class ImageSchema(Schema):
     fw_version = fields.String(required=True)
     hw_version = fields.String(required=True)
     sha1 = fields.String(required=True)
+    confirmed = fields.Bool(required=False)
 
     @post_dump
     def remove_null_values(self, data):
@@ -29,29 +30,32 @@ def allowed_file(filename):
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
-def parse_payload(request, schema):
+def parse_form_payload(request):
+    # Validate http header info
+    content_type = request.headers.get('Content-Type')
+    if (content_type is None) or (
+            "multipart/form-data" not in content_type) or not request.files:
+        raise HTTPRequestError(400, "Payload must be valid multipart/form-data")
+
+    # Validate incoming file
+    if 'image' not in request.files:
+        raise HTTPRequestError(400, "File form does not have an image field")
+    file_data = request.files['image']
+    if file_data.filename == '':
+        raise HTTPRequestError(400, "Filename empty")
+
+    if not (file_data and allowed_file(file_data.filename)):
+        raise HTTPRequestError(400, "Invalid File")
+
+    return file_data
+
+
+def parse_json_payload(request, schema):
     try:
-        # Validate http header info
         content_type = request.headers.get('Content-Type')
-        if (content_type is None) or (
-                "multipart/form-data" not in content_type) or not request.files or not request.form:
-            raise HTTPRequestError(400, "Payload must be valid multipart/form-data containing both a file and metadata")
-
-        # Validate incoming file
-        if 'image' not in request.files:
-            raise HTTPRequestError(400, "File form does not have an image field")
-        file_data = request.files['image']
-        if file_data.filename == '':
-            raise HTTPRequestError(400, "Filename empty")
-
-        if not (file_data and allowed_file(file_data.filename)):
-            raise HTTPRequestError(400, "Invalid File")
-
-        # Validate Meta-Data
-        if 'data' not in request.form:
-            raise HTTPRequestError(400, "No data field in form")
-
-        json_payload = json.loads(request.form['data'])
+        if (content_type is None) or (content_type != "application/json"):
+            raise HTTPRequestError(400, "Payload must be valid JSON, and Content-Type set accordingly")
+        json_payload = json.loads(request.data)
     except ValueError:
         raise HTTPRequestError(400, "Payload must be valid JSON, and Content-Type set accordingly")
 
@@ -59,5 +63,4 @@ def parse_payload(request, schema):
     if errors:
         results = {'message': 'failed to parse input', 'errors': errors}
         raise HTTPRequestError(400, results)
-
-    return data, file_data, json_payload
+    return data, json_payload
