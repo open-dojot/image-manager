@@ -18,30 +18,12 @@ from TenancyManager import init_tenant_context
 from app import app
 
 import uuid
-from threading import Timer
 
 image = Blueprint('image', __name__)
 
 LOGGER = logging.getLogger('image-manager.' + __name__)
 LOGGER.addHandler(logging.StreamHandler())
 LOGGER.setLevel(logging.DEBUG)
-
-# global_imageid = 20
-
-
-UPLOAD_TIMEOUT = 5  # seconds
-
-
-def confirm_image_uploaded(imageid):
-    LOGGER.debug("Testing if image {} was uploaded".format(imageid))
-    orm_image = assert_image_exists(str(imageid))
-    data = image_schema.dump(orm_image).data
-    if data['confirmed']:
-        LOGGER.debug("Image {} was uploaded, metadata confirmed".format(imageid))
-        return
-    LOGGER.info("Image {} not uploaded, metadata discarded".format(imageid))
-    db.session.delete(orm_image)
-    db.session.commit()
 
 
 @image.route('/image/<imageid>', methods=['GET'])
@@ -85,9 +67,6 @@ def create_image():
         tenant = init_tenant_context(request, db)
         image_data, json_payload = parse_json_payload(request, image_schema)
         # TODO Add a better id generation procedure
-        # global global_imageid
-        # imageid = global_imageid
-        # global_imageid = global_imageid + 1
         imageid = str(uuid.uuid4())
         image_data['id'] = imageid
 
@@ -101,9 +80,8 @@ def create_image():
 
         else:
             result = {'message': 'image created, awaiting upload',
-                      'url': url_for('image.upload_image', imageid=imageid)}
+                      'uuid': imageid}
 
-        Timer(UPLOAD_TIMEOUT, confirm_image_uploaded, [imageid]).start()
         return make_response(json.dumps(result), 200)
 
     except HTTPRequestError as e:
@@ -113,7 +91,7 @@ def create_image():
             return format_response(e.error_code, e.message)
 
 
-@image.route('/image/<imageid>', methods=['POST'])
+@image.route('/image/<imageid>/binary', methods=['POST'])
 def upload_image(imageid):
     try:
         tenant = init_tenant_context(request, db)
@@ -125,7 +103,6 @@ def upload_image(imageid):
         file_data = parse_form_payload(request)
 
         try:
-            pass
             db.session.commit()
         except IntegrityError as error:
             handle_consistency_exception(error)

@@ -21,8 +21,10 @@ r = requests.post(base_url, json=payload, headers=headers)
 print(r.text)
 
 # Get url
-image_url = json.loads(r.text)['url']
-url = urllib.parse.urljoin(base_url, image_url)
+image_id = json.loads(r.text)['uuid']
+binary_url = image_id + "/binary"
+url = urllib.parse.urljoin(base_url, binary_url)
+print(url)
 
 # Upload File
 headers = {'Authorization': 'Bearer ' + jwt}
