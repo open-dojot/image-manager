@@ -5,23 +5,18 @@
 import json
 import logging
 import os
-from time import time
+import uuid
 from flask import request
-from flask import make_response
-from flask import redirect, url_for
 from flask import send_from_directory
 from flask import Blueprint
-from werkzeug.utils import secure_filename
 from minio.error import ResponseError
 
 from .utils import *
 from .DatabaseModels import *
 from .SerializationModels import *
 from .TenancyManager import init_tenant_context
-
 from .app import app
 
-import uuid
 
 image = Blueprint('image', __name__)
 
@@ -94,12 +89,10 @@ def delete_image(imageid):
 
 @image.route('/image/', methods=['POST'])
 def create_image():
-    # print(request.__dict__)
     """ Creates and configures the given image (in json) """
     try:
         tenant = init_tenant_context(request, db, minioClient)
         image_data, json_payload = parse_json_payload(request, image_schema)
-        # TODO Add a better id generation procedure
         imageid = str(uuid.uuid4())
         image_data['id'] = imageid
 
@@ -142,7 +135,9 @@ def upload_image(imageid):
             orm_image.confirmed = True
             db.session.commit()
         except ResponseError as err:
-            print(err)
+            LOGGER.error(err.message)
+            # TODO: Don't know how this error message is formatted, parse if necessary
+            raise HTTPRequestError(400, err.message)
         except IntegrityError as error:
             handle_consistency_exception(error)
 
