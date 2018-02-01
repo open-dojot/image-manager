@@ -17,7 +17,6 @@ from .SerializationModels import *
 from .TenancyManager import init_tenant_context
 from .app import app
 
-
 image = Blueprint('image', __name__)
 
 LOGGER = logging.getLogger('image-manager.' + __name__)

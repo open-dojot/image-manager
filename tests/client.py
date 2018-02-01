@@ -10,7 +10,7 @@ import datetime
 ts = time.time()
 st = datetime.datetime.fromtimestamp(ts).strftime('%Y%m%d%H%M%S')
 
-service = 'test' + st + '_t'  # This ensures an isolated tenant each time this test suite is run
+service = 'test' + st + "t"  # This ensures an isolated tenant each time this test suite is run
 encode_data = {'userid': 1, 'name': 'Admin (superuser)', 'groups': [1], 'iat': 1517339633, 'exp': 1517340053,
                'email': 'admin@noemail.com', 'profile': 'admin', 'iss': 'eGfIBvOLxz5aQxA92lFk5OExZmBMZDDh',
                'service': service, 'jti': '7e3086317df2c299cef280932da856e5', 'username': 'admin'}
@@ -32,28 +32,27 @@ print(r.text)
 
 # Get url
 image_id = json.loads(r.text)['uuid']
-binary_url = image_id + "/binary"
-url = urllib.parse.urljoin(base_url, binary_url)
-print(url)
+image_url = urllib.parse.urljoin(base_url, image_id)
+binary_url = urllib.parse.urljoin(image_url + "/", "binary")
+print(image_url)
+print(binary_url)
 
 # Upload File
 headers = {'Authorization': 'Bearer ' + jwt_token}
 files = {'image': open('example.hex', 'rb')}
-r = requests.post(url, files=files, headers=headers)
+r = requests.post(binary_url, files=files, headers=headers)
 print(r.text)
 
-
 # Upload File Again to see the error
-headers = {'Authorization': 'Bearer ' + jwt}
+headers = {'Authorization': 'Bearer ' + jwt_token}
 files = {'image': open('example.hex', 'rb')}
-r = requests.post(url, files=files, headers=headers)
+r = requests.post(binary_url, files=files, headers=headers)
 print(r.text)
 
 # Get the metadata
-meta_url = url + '/meta'
-r = requests.get(meta_url, headers=headers)
+r = requests.get(image_url, headers=headers)
 print(r.text)
 
 # Get the file content
-r = requests.get(url, headers=headers)
+r = requests.get(binary_url, headers=headers)
 print(r.text)
