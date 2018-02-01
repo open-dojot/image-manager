@@ -15,7 +15,7 @@ db = SQLAlchemy(app)
 class Image(db.Model):
     __tablename__ = 'images'
 
-    id = db.Column(db.String(4), unique=True, nullable=False, primary_key=True)
+    id = db.Column(db.String(36), unique=True, nullable=False, primary_key=True)
     label = db.Column(db.String(128), nullable=False)
     created = db.Column(db.DateTime, default=datetime.now)
     updated = db.Column(db.DateTime, onupdate=datetime.now)
@@ -23,6 +23,7 @@ class Image(db.Model):
     fw_version = db.Column(db.String(128), nullable=False)
     hw_version = db.Column(db.String(128), nullable=False)
     sha1 = db.Column(db.String(40), nullable=False)
+    confirmed = db.Column(db.Boolean, default=False, nullable=False)
 
     def __repr__(self):
         return "<Image(label={}, fw_version={}, hw_version={})>".format(self.label, self.fw_version, self.hw_version)
