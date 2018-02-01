@@ -1,7 +1,7 @@
 # object to json sweetness
 import json
 from marshmallow import Schema, fields, post_dump
-from utils import HTTPRequestError
+from .utils import HTTPRequestError
 
 
 class ImageSchema(Schema):
@@ -55,7 +55,7 @@ def parse_json_payload(request, schema):
         content_type = request.headers.get('Content-Type')
         if (content_type is None) or (content_type != "application/json"):
             raise HTTPRequestError(400, "Payload must be valid JSON, and Content-Type set accordingly")
-        json_payload = json.loads(request.data)
+        json_payload = json.loads(request.data.decode('utf-8'))
     except ValueError:
         raise HTTPRequestError(400, "Payload must be valid JSON, and Content-Type set accordingly")
 

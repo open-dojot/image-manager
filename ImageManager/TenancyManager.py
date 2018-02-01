@@ -1,7 +1,7 @@
 import base64
 import json
 from sqlalchemy.sql import exists, select, text
-from utils import HTTPRequestError
+from .utils import HTTPRequestError
 
 
 def decode_base64(data):
@@ -13,8 +13,8 @@ def decode_base64(data):
     """
     missing_padding = len(data) % 4
     if missing_padding != 0:
-        data += b'=' * (4 - missing_padding)
-    return base64.decodestring(data)
+        data = bytes(data, 'utf-8') + b'=' * (4 - missing_padding)
+    return base64.decodebytes(data).decode("utf-8")
 
 
 def get_allowed_service(token):
