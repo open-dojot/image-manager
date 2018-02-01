@@ -30,6 +30,20 @@ LOGGER.addHandler(logging.StreamHandler())
 LOGGER.setLevel(logging.DEBUG)
 
 
+@image.route('/image/', methods=['GET'])
+def get_all():
+    try:
+        init_tenant_context(request, db, minioClient)
+        images = get_all_images()
+        json_images = [image_schema.dump(i).data for i in images]
+        return make_response(json.dumps(json_images), 200)
+    except HTTPRequestError as e:
+        if isinstance(e.message, dict):
+            return make_response(json.dumps(e.message), e.error_code)
+        else:
+            return format_response(e.error_code, e.message)
+
+
 @image.route('/image/<imageid>', methods=['GET'])
 def get_image(imageid):
     try:

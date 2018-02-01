@@ -40,6 +40,10 @@ def assert_image_exists(image_id):
         raise HTTPRequestError(404, "No such image: %s" % image_id)
 
 
+def get_all_images():
+    return Image.query.all()
+
+
 def handle_consistency_exception(error):
     # message = error.message.replace('\n','')
     message = re.sub(r"(^\(.*?\))|\n", "", error.message)
