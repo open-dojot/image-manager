@@ -1,0 +1,24 @@
+version: '2.1'
+services:
+  
+  postgres:
+    image: "postgres:9.4"
+    restart: always
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: "minio/minio"
+    restart: always
+    volumes:
+      - /mnt/data:/data
+      - /mnt/config:/root/.minio
+    ports:
+      - "9001:9000"
+    environment:
+      MINIO_ACCESS_KEY: 9HEODSF6WQN5EZ39DM7Z
+      MINIO_SECRET_KEY: fT5nAgHR9pkj0yYsBdc4p+PPq6ArjshcPdz0HA6W
+    command: server /data
