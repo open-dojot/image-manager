@@ -31,7 +31,7 @@ def get_image(imageid):
     try:
         init_tenant_context(request, db)
         orm_image = assert_image_exists(imageid)
-        result = image_schema.dump(orm_image).data
+        result = image_schema.dump(orm_image)
         return make_response(json.dumps(result), 200)
     except HTTPRequestError as e:
         if isinstance(e.message, dict):
@@ -45,7 +45,7 @@ def delete_image(imageid):
     try:
         init_tenant_context(request, db)
         orm_image = assert_image_exists(imageid)
-        data = image_schema.dump(orm_image).data
+        data = image_schema.dump(orm_image)
 
         db.session.delete(orm_image)
         db.session.commit()

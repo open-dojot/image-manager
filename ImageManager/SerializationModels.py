@@ -1,6 +1,7 @@
 # object to json sweetness
 import json
 from marshmallow import Schema, fields, post_dump
+from marshmallow import ValidationError
 from .utils import HTTPRequestError
 
 
@@ -59,8 +60,9 @@ def parse_json_payload(request, schema):
     except ValueError:
         raise HTTPRequestError(400, "Payload must be valid JSON, and Content-Type set accordingly")
 
-    data, errors = schema.load(json_payload)
-    if errors:
-        results = {'message': 'failed to parse input', 'errors': errors}
+    try:
+        data = schema.load(json_payload)
+    except ValidationError as error:
+        results = {'message': 'failed to parse input', 'errors': error.messages}
         raise HTTPRequestError(400, results)
     return data, json_payload
