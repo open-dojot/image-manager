@@ -13,7 +13,9 @@ before_install:
 - docker pull minio/minio
 - docker-compose -f local/compose.yml -p imgm up -d
 - docker build -f Dockerfile -t local/imagemanager .
-- docker run -d --rm -it --network imgm_default -p 8000:5000 --network-alias image-manager -v $PWD:/usr/src/app local/imagemanager
+- docker run -d --network imgm_default -p 8000:5000 local/imagemanager
+
+install:
 - pip3 install -r requirements/test_requirements.txt
 
 script:
