@@ -1,5 +1,8 @@
 """
     Handles CRUD operations for firmware binary images
+    Each image consists of an metadata entry and optionally an binary file
+    Binary files are stored temporarily at /tmp/. This implementation assumes /tmp/ is cleaned on a regular basis
+    and no effort to remove temporary files are made.
 """
 
 import json
@@ -55,9 +58,10 @@ def get_image(imageid):
 @image.route('/image/<imageid>/binary', methods=['GET'])
 def get_image_binary(imageid):
     try:
-        init_tenant_context(request, db, minioClient)
+        tenant = init_tenant_context(request, db, minioClient)
         orm_image = assert_image_exists(imageid)
         filename = imageid + '.hex'
+        minioClient.fget_object(tenant, filename, os.path.join('/tmp/', filename))
         return send_from_directory(directory='/tmp/', filename=filename)
 
     except HTTPRequestError as e:
