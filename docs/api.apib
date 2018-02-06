@@ -8,32 +8,34 @@ Simple CRUD service for storing firmware image metadata and binaries
 
 # Group Images
 
-## Image Collection [/image]
+## Image Collection [/image/]
 
 ### List All Images [GET]
 
 + Request
-    + Headers
+        + Headers
             Authorization: Bearer JWT
-            
+        
+        
 + Response 200 (application/json)
-        {
-            [
-                {
-                    "label": "FW_Example",
-                    "fw_version": "1.0.0",
-                    "hw_version": "1.0.0",
-                    "sha1": "asdasdafasfdas"
-                },
-                {
-                    "label": "FW_Example",
-                    "fw_version": "1.0.1",
-                    "hw_version": "1.0.0",
-                    "sha1": "asdasdafasfdas"
-                },
-    
-            ]
-        }
+        + Body
+            {
+                [
+                    {
+                        "label": "FW_Example",
+                        "fw_version": "1.0.0",
+                        "hw_version": "1.0.0",
+                        "sha1": "asdasdafasfdas"
+                    },
+                    {
+                        "label": "FW_Example",
+                        "fw_version": "1.0.1",
+                        "hw_version": "1.0.0",
+                        "sha1": "asdasdafasfdas"
+                    },
+            
+                ]
+            }
 
 ### Create a New Image [POST]
 
@@ -45,16 +47,16 @@ Creates a new image based on a JSON object containing the following metadata.
 + sha1 (string) - Expected SHA1 of the image binary, used for consistency
 
 + Request (application/json)
-    + Headers
-        Authorization: Bearer JWT
+        + Headers
+            Authorization: Bearer JWT
     
-    + Body
-        {
-            "label": "FW_Example",
-            "fw_version": "1.0.0",
-            "hw_version": "1.0.0",
-            "sha1": "asdasdafasfdas"
-        },
+        + Body
+            {
+                "label": "FW_Example",
+                "fw_version": "1.0.0",
+                "hw_version": "1.0.0",
+                "sha1": "asdasdafasfdas"
+            },
 
 
 + Response 201 (application/json)
@@ -79,7 +81,7 @@ Creates a new image based on a JSON object containing the following metadata.
 
 ### Retrieve a single image metadata [GET]
 + Request
-    + Headers
+        + Headers
             Authorization: Bearer JWT
 
 + Response 200 (application/json)
@@ -94,7 +96,7 @@ Creates a new image based on a JSON object containing the following metadata.
 
 ### Delete [DELETE]
 + Request
-    + Headers
+        + Headers
             Authorization: Bearer JWT
             
 + Response 204
@@ -107,14 +109,14 @@ Creates a new image based on a JSON object containing the following metadata.
 
 ### Retrieve a single image binary [GET]
 + Request
-    + Headers
+        + Headers
             Authorization: Bearer JWT
 
 + Response 200 (application/octet-stream)
 
 ### Delete [DELETE]
 + Request
-    + Headers
+        + Headers
             Authorization: Bearer JWT
             
 + Response 204
@@ -122,10 +124,10 @@ Creates a new image based on a JSON object containing the following metadata.
 ### Add binary to an existing image [POST]
 
 + Request (multipart/form)
-    + Headers
-        Authorization: Bearer JWT
-     + Part
-            + image
+        + Headers
+            Authorization: Bearer JWT
+        + Part
+            + name:image
 
 
 + Response 201
