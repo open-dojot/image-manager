@@ -12,7 +12,7 @@ Simple CRUD service for storing firmware image metadata and binaries
 
 ### List All Images [GET]
 
-+ Request (application/json)
++ Request
     + Headers
             Authorization: Bearer JWT
             
@@ -78,7 +78,7 @@ Creates a new image based on a JSON object containing the following metadata.
     + image_id: `08ff7052-2e95-11e3-a1fc-000c294eede0` (guid) - Unique ID
 
 ### Retrieve a single image metadata [GET]
-+ Request (application/json)
++ Request
     + Headers
             Authorization: Bearer JWT
 
@@ -93,10 +93,40 @@ Creates a new image based on a JSON object containing the following metadata.
 
 
 ### Delete [DELETE]
-+ Request (application/json)
++ Request
     + Headers
             Authorization: Bearer JWT
             
 + Response 204
 
+
+## Image Binaries [/image/{image_id}/binary]
+
++ Parameters
+    + image_id: `08ff7052-2e95-11e3-a1fc-000c294eede0` (guid) - Unique ID
+
+### Retrieve a single image binary [GET]
++ Request
+    + Headers
+            Authorization: Bearer JWT
+
++ Response 200 (application/octet-stream)
+
+### Delete [DELETE]
++ Request
+    + Headers
+            Authorization: Bearer JWT
+            
++ Response 204
+
+### Add binary to an existing image [POST]
+
++ Request (multipart/form)
+    + Headers
+        Authorization: Bearer JWT
+     + Part
+            + image
+
+
++ Response 201
 
