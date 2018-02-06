@@ -12,23 +12,28 @@ Simple CRUD service for storing firmware image metadata and binaries
 
 ### List All Images [GET]
 
++ Request (application/json)
+    + Headers
+            Authorization: Bearer JWT
+            
 + Response 200 (application/json)
-
-        [
-            {
-                "label": "FW_Example",
-                "fw_version": "1.0.0",
-                "hw_version": "1.0.0",
-                "sha1": "asdasdafasfdas"
-            },
-            {
-                "label": "FW_Example",
-                "fw_version": "1.0.1",
-                "hw_version": "1.0.0",
-                "sha1": "asdasdafasfdas"
-            },
-
-        ]
+        {
+            [
+                {
+                    "label": "FW_Example",
+                    "fw_version": "1.0.0",
+                    "hw_version": "1.0.0",
+                    "sha1": "asdasdafasfdas"
+                },
+                {
+                    "label": "FW_Example",
+                    "fw_version": "1.0.1",
+                    "hw_version": "1.0.0",
+                    "sha1": "asdasdafasfdas"
+                },
+    
+            ]
+        }
 
 ### Create a New Image [POST]
 
@@ -40,13 +45,16 @@ Creates a new image based on a JSON object containing the following metadata.
 + sha1 (string) - Expected SHA1 of the image binary, used for consistency
 
 + Request (application/json)
-
-           {
-                "label": "FW_Example",
-                "fw_version": "1.0.0",
-                "hw_version": "1.0.0",
-                "sha1": "asdasdafasfdas"
-            },
+    + Headers
+        Authorization: Bearer JWT
+    
+    + Body
+        {
+            "label": "FW_Example",
+            "fw_version": "1.0.0",
+            "hw_version": "1.0.0",
+            "sha1": "asdasdafasfdas"
+        },
 
 
 + Response 201 (application/json)
@@ -57,11 +65,11 @@ Creates a new image based on a JSON object containing the following metadata.
 
     + Body
 
-                {
-                    "label": "FW_Example",
-                    "published_at": "2014-11-11T08:40:51.620Z",
-                    "url": "/image/asdasdasdasdasdas",
-                }
+            {
+                "label": "FW_Example",
+                "published_at": "2014-11-11T08:40:51.620Z",
+                "url": "/image/asdasdasdasdasdas",
+            }
 
 
 ## Images [/image/{image_id}]
@@ -70,6 +78,9 @@ Creates a new image based on a JSON object containing the following metadata.
     + image_id: `08ff7052-2e95-11e3-a1fc-000c294eede0` (guid) - Unique ID
 
 ### Retrieve a single image metadata [GET]
++ Request (application/json)
+    + Headers
+            Authorization: Bearer JWT
 
 + Response 200 (application/json)
 
@@ -82,8 +93,10 @@ Creates a new image based on a JSON object containing the following metadata.
 
 
 ### Delete [DELETE]
-
++ Request (application/json)
+    + Headers
+            Authorization: Bearer JWT
+            
 + Response 204
-
 
 
