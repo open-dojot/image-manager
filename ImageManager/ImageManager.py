@@ -32,7 +32,7 @@ def get_all():
     try:
         init_tenant_context(request, db, minioClient)
         images = get_all_images()
-        json_images = [image_schema.dump(i).data for i in images]
+        json_images = [image_schema.dump(i) for i in images]
         return make_response(json.dumps(json_images), 200)
     except HTTPRequestError as e:
         if isinstance(e.message, dict):
@@ -46,7 +46,7 @@ def get_image(imageid):
     try:
         init_tenant_context(request, db, minioClient)
         orm_image = assert_image_exists(imageid)
-        result = image_schema.dump(orm_image).data
+        result = image_schema.dump(orm_image)
         return make_response(json.dumps(result), 200)
     except HTTPRequestError as e:
         if isinstance(e.message, dict):
@@ -76,7 +76,7 @@ def delete_image(imageid):
     try:
         init_tenant_context(request, db, minioClient)
         orm_image = assert_image_exists(imageid)
-        data = image_schema.dump(orm_image).data
+        data = image_schema.dump(orm_image)
 
         db.session.delete(orm_image)
         db.session.commit()
