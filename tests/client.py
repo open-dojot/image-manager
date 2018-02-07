@@ -41,18 +41,37 @@ print(binary_url)
 headers = {'Authorization': 'Bearer ' + jwt_token}
 files = {'image': open('example.hex', 'rb')}
 r = requests.post(binary_url, files=files, headers=headers)
+assert r.status_code == requests.codes.ok
 print(r.text)
 
 # Upload File Again to see the error
 headers = {'Authorization': 'Bearer ' + jwt_token}
 files = {'image': open('example.hex', 'rb')}
 r = requests.post(binary_url, files=files, headers=headers)
+assert r.status_code == requests.codes.bad_request
 print(r.text)
 
 # Get the metadata
 r = requests.get(image_url, headers=headers)
+assert r.status_code == requests.codes.ok
 print(r.text)
 
 # Get the file content
 r = requests.get(binary_url, headers=headers)
+assert r.status_code == requests.codes.ok
+print(r.text)
+
+# Delete the file content
+r = requests.delete(binary_url, headers=headers)
+assert r.status_code == requests.codes.ok
+print(r.text)
+
+# Delete the metadata
+r = requests.delete(image_url, headers=headers)
+assert r.status_code == requests.codes.ok
+print(r.text)
+
+# Delete the file content again and get error
+r = requests.delete(binary_url, headers=headers)
+assert r.status_code == requests.codes.not_found
 print(r.text)
