@@ -1,23 +1,24 @@
 """
     Handles CRUD operations for firmware binary images
+    Each image consists of an metadata entry and optionally an binary file
+    Binary files are stored temporarily at /tmp/. This implementation assumes /tmp/ is cleaned on a regular basis
+    and no effort to remove temporary files are made.
 """
 
 import json
 import logging
-from time import time
+import os
+import uuid
 from flask import request
-from flask import make_response
-from flask import redirect, url_for
+from flask import send_from_directory
 from flask import Blueprint
-from .utils import *
+from minio.error import ResponseError
 
+from .utils import *
 from .DatabaseModels import *
 from .SerializationModels import *
 from .TenancyManager import init_tenant_context
-
 from .app import app
-
-import uuid
 
 image = Blueprint('image', __name__)
 
@@ -26,10 +27,24 @@ LOGGER.addHandler(logging.StreamHandler())
 LOGGER.setLevel(logging.DEBUG)
 
 
+@image.route('/image/', methods=['GET'])
+def get_all():
+    try:
+        init_tenant_context(request, db, minioClient)
+        images = get_all_images()
+        json_images = [image_schema.dump(i) for i in images]
+        return make_response(json.dumps(json_images), 200)
+    except HTTPRequestError as e:
+        if isinstance(e.message, dict):
+            return make_response(json.dumps(e.message), e.error_code)
+        else:
+            return format_response(e.error_code, e.message)
+
+
 @image.route('/image/<imageid>', methods=['GET'])
 def get_image(imageid):
     try:
-        init_tenant_context(request, db)
+        init_tenant_context(request, db, minioClient)
         orm_image = assert_image_exists(imageid)
         result = image_schema.dump(orm_image)
         return make_response(json.dumps(result), 200)
@@ -40,10 +55,26 @@ def get_image(imageid):
             return format_response(e.error_code, e.message)
 
 
+@image.route('/image/<imageid>/binary', methods=['GET'])
+def get_image_binary(imageid):
+    try:
+        tenant = init_tenant_context(request, db, minioClient)
+        orm_image = assert_image_exists(imageid)
+        filename = imageid + '.hex'
+        minioClient.fget_object(tenant, filename, os.path.join('/tmp/', filename))
+        return send_from_directory(directory='/tmp/', filename=filename)
+
+    except HTTPRequestError as e:
+        if isinstance(e.message, dict):
+            return make_response(json.dumps(e.message), e.error_code)
+        else:
+            return format_response(e.error_code, e.message)
+
+
 @image.route('/image/<imageid>', methods=['DELETE'])
 def delete_image(imageid):
     try:
-        init_tenant_context(request, db)
+        init_tenant_context(request, db, minioClient)
         orm_image = assert_image_exists(imageid)
         data = image_schema.dump(orm_image)
 
@@ -61,12 +92,10 @@ def delete_image(imageid):
 
 @image.route('/image/', methods=['POST'])
 def create_image():
-    # print(request.__dict__)
     """ Creates and configures the given image (in json) """
     try:
-        tenant = init_tenant_context(request, db)
+        tenant = init_tenant_context(request, db, minioClient)
         image_data, json_payload = parse_json_payload(request, image_schema)
-        # TODO Add a better id generation procedure
         imageid = str(uuid.uuid4())
         image_data['id'] = imageid
 
@@ -94,21 +123,29 @@ def create_image():
 @image.route('/image/<imageid>/binary', methods=['POST'])
 def upload_image(imageid):
     try:
-        tenant = init_tenant_context(request, db)
+        tenant = init_tenant_context(request, db, minioClient)
         orm_image = assert_image_exists(imageid)
         if orm_image.confirmed:
             raise HTTPRequestError(400, "Binary already exists")
 
         orm_image.confirmed = True
         file_data = parse_form_payload(request)
-
+        extension = file_data.filename.rsplit('.', 1)[1].lower()
+        filename = imageid + '.' + extension
+        file_data.save(os.path.join('/tmp/', filename))
         try:
+            minioClient.fput_object(tenant, filename, os.path.join('/tmp/', filename))
+            orm_image.confirmed = True
             db.session.commit()
+        except ResponseError as err:
+            LOGGER.error(err.message)
+            # TODO: Don't know how this error message is formatted, parse if necessary
+            raise HTTPRequestError(400, err.message)
         except IntegrityError as error:
             handle_consistency_exception(error)
 
         else:
-            result = {'message': 'image updated', 'image': imageid}
+            result = {'message': 'image uploaded', 'image': imageid}
 
         return make_response(json.dumps(result), 200)
 

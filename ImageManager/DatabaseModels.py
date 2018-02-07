@@ -6,10 +6,14 @@ from .app import app
 from .utils import HTTPRequestError
 from .conf import CONFIG
 from sqlalchemy.exc import IntegrityError
+from minio import Minio
 
 app.config['SQLALCHEMY_DATABASE_URI'] = CONFIG.get_db_url()
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
+
+
+minioClient = Minio(CONFIG.s3url, CONFIG.s3user, CONFIG.s3pass, secure=False)
 
 
 class Image(db.Model):
@@ -34,6 +38,10 @@ def assert_image_exists(image_id):
         return Image.query.filter_by(id=image_id).one()
     except sqlalchemy.orm.exc.NoResultFound:
         raise HTTPRequestError(404, "No such image: %s" % image_id)
+
+
+def get_all_images():
+    return Image.query.all()
 
 
 def handle_consistency_exception(error):
