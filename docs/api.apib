@@ -13,29 +13,33 @@ Simple CRUD service for storing firmware image metadata and binaries
 ### List All Images [GET]
 
 + Request
-        + Headers
+    + Headers
             Authorization: Bearer JWT
         
         
 + Response 200 (application/json)
-        + Body
-            {
-                [
-                    {
-                        "label": "FW_Example",
-                        "fw_version": "1.0.0",
-                        "hw_version": "1.0.0",
-                        "sha1": "asdasdafasfdas"
-                    },
-                    {
-                        "label": "FW_Example",
-                        "fw_version": "1.0.1",
-                        "hw_version": "1.0.0",
-                        "sha1": "asdasdafasfdas"
-                    },
-            
-                ]
-            }
+    + Body
+        [
+          {
+            "created": "2018-02-08T12:25:11.979313+00:00",
+            "hw_version": "1.0.0-revA",
+            "confirmed": true,
+            "label": "ExampleFW",
+            "fw_version": "1.0.0-rc1",
+            "sha1": "cf23df2207d99a74fbe169e3eba035e633b65d94",
+            "id": "b60aa5e9-cbe6-4b51-b76c-08cf8273db07"
+          },
+          {
+            "created": "2018-02-08T12:25:11.998107+00:00",
+            "hw_version": "1.0.0-revA",
+            "confirmed": false,
+            "label": "ExampleFW",
+            "fw_version": "1.0.0-rc1",
+            "sha1": "cf23df2207d99a74fbe169e3eba035e633b65d94",
+            "id": "51b39543-9de1-4751-9fe2-48c8d6038ba1"
+          }
+        ]
+
 
 ### Create a New Image [POST]
 
@@ -47,7 +51,7 @@ Creates a new image based on a JSON object containing the following metadata.
 + sha1 (string) - Expected SHA1 of the image binary, used for consistency
 
 + Request (application/json)
-        + Headers
+    + Headers
             Authorization: Bearer JWT
     
         + Body
@@ -60,9 +64,7 @@ Creates a new image based on a JSON object containing the following metadata.
 
 
 + Response 201 (application/json)
-
     + Headers
-
             Location: /image/asdasdasdasdasdas
 
     + Body
@@ -81,7 +83,7 @@ Creates a new image based on a JSON object containing the following metadata.
 
 ### Retrieve a single image metadata [GET]
 + Request
-        + Headers
+    + Headers
             Authorization: Bearer JWT
 
 + Response 200 (application/json)
@@ -96,7 +98,7 @@ Creates a new image based on a JSON object containing the following metadata.
 
 ### Delete [DELETE]
 + Request
-        + Headers
+    + Headers
             Authorization: Bearer JWT
             
 + Response 204
@@ -109,14 +111,14 @@ Creates a new image based on a JSON object containing the following metadata.
 
 ### Retrieve a single image binary [GET]
 + Request
-        + Headers
+    + Headers
             Authorization: Bearer JWT
 
 + Response 200 (application/octet-stream)
 
 ### Delete [DELETE]
 + Request
-        + Headers
+    + Headers
             Authorization: Bearer JWT
             
 + Response 204
@@ -124,7 +126,7 @@ Creates a new image based on a JSON object containing the following metadata.
 ### Add binary to an existing image [POST]
 
 + Request (multipart/form)
-        + Headers
+    + Headers
             Authorization: Bearer JWT
         + Part
             + name:image

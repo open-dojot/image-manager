@@ -12,6 +12,7 @@ import uuid
 from flask import request
 from flask import send_from_directory
 from flask import Blueprint
+from flask import jsonify
 from minio.error import ResponseError
 
 from .utils import *
@@ -33,7 +34,7 @@ def get_all():
         init_tenant_context(request, db, minioClient)
         images = get_all_images()
         json_images = [image_schema.dump(i) for i in images]
-        return make_response(json.dumps(json_images), 200)
+        return make_response(jsonify(json_images), 200)
     except HTTPRequestError as e:
         if isinstance(e.message, dict):
             return make_response(json.dumps(e.message), e.error_code)

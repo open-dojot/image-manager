@@ -17,10 +17,12 @@ with open(EXAMPLE_FILE, 'rb') as f:
     data = f.read()
     sha1.update(data)
 
-ts = time.time()
-st = datetime.datetime.fromtimestamp(ts).strftime('%Y%m%d%H%M%S')
+# ts = time.time()
+# st = datetime.datetime.fromtimestamp(ts).strftime('%Y%m%d%H%M%S')
+# service = 'test' + st + "t"  # This ensures an isolated tenant each time this test suite is run
 
-service = 'test' + st + "t"  # This ensures an isolated tenant each time this test suite is run
+service = 'admin'
+
 encode_data = {'userid': 1, 'name': 'Admin (superuser)', 'groups': [1], 'iat': 1517339633, 'exp': 1517340053,
                'email': 'admin@noemail.com', 'profile': 'admin', 'iss': 'eGfIBvOLxz5aQxA92lFk5OExZmBMZDDh',
                'service': service, 'jti': '7e3086317df2c299cef280932da856e5', 'username': 'admin'}

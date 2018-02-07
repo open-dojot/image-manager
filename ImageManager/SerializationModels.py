@@ -67,7 +67,9 @@ def parse_json_payload(request, schema):
         raise HTTPRequestError(400, "Payload must be valid JSON, and Content-Type set accordingly")
 
     try:
+        print(json_payload)
         data = schema.load(json_payload)
+        print(data)
     except ValidationError as error:
         results = {'message': 'failed to parse input', 'errors': error.messages}
         raise HTTPRequestError(400, results)
