@@ -38,6 +38,7 @@ payload = {
 }
 headers = {'Authorization': 'Bearer ' + jwt_token}
 r = requests.post(base_url, json=payload, headers=headers)
+assert r.status_code == requests.codes.ok
 print(r.text)
 
 # Get url
@@ -51,24 +52,29 @@ print(binary_url)
 headers = {'Authorization': 'Bearer ' + jwt_token}
 files = {'image': open(CORRUPTED_EXAMPLE_FILE, 'rb')}
 r = requests.post(binary_url, files=files, headers=headers)
+assert r.status_code == requests.codes.bad_request
 print(r.text)
 
 # Upload File
 headers = {'Authorization': 'Bearer ' + jwt_token}
 files = {'image': open(EXAMPLE_FILE, 'rb')}
 r = requests.post(binary_url, files=files, headers=headers)
+assert r.status_code == requests.codes.ok
 print(r.text)
 
 # Upload File Again to see the error
 headers = {'Authorization': 'Bearer ' + jwt_token}
 files = {'image': open(EXAMPLE_FILE, 'rb')}
 r = requests.post(binary_url, files=files, headers=headers)
+assert r.status_code == requests.codes.bad_request
 print(r.text)
 
 # Get the metadata
 r = requests.get(image_url, headers=headers)
+assert r.status_code == requests.codes.ok
 print(r.text)
 
 # Get the file content
 r = requests.get(binary_url, headers=headers)
+assert r.status_code == requests.codes.ok
 print(r.text)
