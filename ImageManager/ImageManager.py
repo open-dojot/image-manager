@@ -150,8 +150,13 @@ def upload_image(imageid):
 
         orm_image.confirmed = True
         file_data = parse_form_payload(request)
+        sha1 = calculate_sha1(file_data)
+        if sha1 != orm_image.sha1:
+            raise HTTPRequestError(400, "Corrupted image. Invalid SHA1")
+
         extension = file_data.filename.rsplit('.', 1)[1].lower()
         filename = imageid + '.' + extension
+        file_data.seek(0)
         file_data.save(os.path.join('/tmp/', filename))
         try:
             minioClient.fput_object(tenant, filename, os.path.join('/tmp/', filename))

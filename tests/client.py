@@ -6,6 +6,16 @@ import time
 import binascii
 import os
 import datetime
+import hashlib
+
+EXAMPLE_FILE = 'example.hex'
+CORRUPTED_EXAMPLE_FILE = 'corrupted_example.hex'
+
+sha1 = hashlib.sha1()
+# Calculate sha1 for our example file
+with open(EXAMPLE_FILE, 'rb') as f:
+    data = f.read()
+    sha1.update(data)
 
 ts = time.time()
 st = datetime.datetime.fromtimestamp(ts).strftime('%Y%m%d%H%M%S')
@@ -24,10 +34,11 @@ payload = {
     "label": "ExampleFW",
     "fw_version": "1.0.0-rc1",
     "hw_version": "1.0.0-revA",
-    "sha1": "cf23df2207d99a74fbe169e3eba035e633b65d94"
+    "sha1": sha1.hexdigest()
 }
 headers = {'Authorization': 'Bearer ' + jwt_token}
 r = requests.post(base_url, json=payload, headers=headers)
+assert r.status_code == requests.codes.ok
 print(r.text)
 
 # Get url
@@ -37,16 +48,23 @@ binary_url = urllib.parse.urljoin(image_url + "/", "binary")
 print(image_url)
 print(binary_url)
 
+# Upload Corrupted File
+headers = {'Authorization': 'Bearer ' + jwt_token}
+files = {'image': open(CORRUPTED_EXAMPLE_FILE, 'rb')}
+r = requests.post(binary_url, files=files, headers=headers)
+assert r.status_code == requests.codes.bad_request
+print(r.text)
+
 # Upload File
 headers = {'Authorization': 'Bearer ' + jwt_token}
-files = {'image': open('example.hex', 'rb')}
+files = {'image': open(EXAMPLE_FILE, 'rb')}
 r = requests.post(binary_url, files=files, headers=headers)
 assert r.status_code == requests.codes.ok
 print(r.text)
 
 # Upload File Again to see the error
 headers = {'Authorization': 'Bearer ' + jwt_token}
-files = {'image': open('example.hex', 'rb')}
+files = {'image': open(EXAMPLE_FILE, 'rb')}
 r = requests.post(binary_url, files=files, headers=headers)
 assert r.status_code == requests.codes.bad_request
 print(r.text)
