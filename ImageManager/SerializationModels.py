@@ -3,6 +3,11 @@ import json
 from marshmallow import Schema, fields, post_dump
 from marshmallow import ValidationError
 from .utils import HTTPRequestError
+import logging
+
+LOGGER = logging.getLogger('image-manager.' + __name__)
+LOGGER.addHandler(logging.StreamHandler())
+LOGGER.setLevel(logging.DEBUG)
 
 
 class ImageSchema(Schema):
@@ -46,6 +51,7 @@ def parse_form_payload(request):
         raise HTTPRequestError(400, "Filename empty")
 
     if not (file_data and allowed_file(file_data.filename)):
+        LOGGER.debug("file_data: {}, filename: {}".format(file_data, file_data.filename))
         raise HTTPRequestError(400, "Invalid File")
 
     return file_data

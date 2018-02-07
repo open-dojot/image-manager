@@ -74,14 +74,34 @@ def get_image_binary(imageid):
 @image.route('/image/<imageid>', methods=['DELETE'])
 def delete_image(imageid):
     try:
-        init_tenant_context(request, db, minioClient)
+        tenant = init_tenant_context(request, db, minioClient)
         orm_image = assert_image_exists(imageid)
         data = image_schema.dump(orm_image)
 
+        if orm_image.confirmed:
+            minioClient.remove_object(tenant, imageid + '.hex')
         db.session.delete(orm_image)
         db.session.commit()
 
         result = json.dumps({'result': 'ok', 'removed_image': data})
+        return make_response(result, 200)
+    except HTTPRequestError as e:
+        if isinstance(e.message, dict):
+            return make_response(json.dumps(e.message), e.error_code)
+        else:
+            return format_response(e.error_code, e.message)
+
+
+@image.route('/image/<imageid>/binary', methods=['DELETE'])
+def delete_image_binary(imageid):
+    try:
+        tenant = init_tenant_context(request, db, minioClient)
+        orm_image = assert_image_exists(imageid)
+        minioClient.remove_object(tenant, imageid + '.hex')
+        orm_image.confirmed = False
+        db.session.commit()
+
+        result = json.dumps({'result': 'ok'})
         return make_response(result, 200)
     except HTTPRequestError as e:
         if isinstance(e.message, dict):
