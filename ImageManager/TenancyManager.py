@@ -1,6 +1,7 @@
 import base64
 import json
 from sqlalchemy.sql import exists, select, text
+from minio.error import (ResponseError, BucketAlreadyOwnedByYou, BucketAlreadyExists)
 from .utils import HTTPRequestError
 
 
@@ -46,7 +47,8 @@ def switch_tenant(tenant, db):
     db.session.commit()
 
 
-def init_tenant(tenant, db):
+def init_tenant(tenant, db, minioClient):
+    # Check if Postgres schema exists
     query = exists(select([text("schema_name")])
                    .select_from(text("information_schema.schemata"))
                    .where(text("schema_name = '%s'" % tenant)))
@@ -60,13 +62,24 @@ def init_tenant(tenant, db):
     else:
         switch_tenant(tenant, db)
 
+    # Check if Minio Bucket exists
+    try:
+        # TODO Set bucket location
+        minioClient.make_bucket(tenant)
+    except BucketAlreadyOwnedByYou as err:
+        pass
+    except BucketAlreadyExists as err:
+        pass
+    except ResponseError as err:
+        raise
 
-def init_tenant_context(request, db):
+
+def init_tenant_context(request, db, minioClient):
     try:
         token = request.headers['authorization']
     except KeyError:
         raise HTTPRequestError(401, "No authorization token has been supplied")
 
     tenant = get_allowed_service(token)
-    init_tenant(tenant, db)
+    init_tenant(tenant, db, minioClient)
     return tenant
