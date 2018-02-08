@@ -17,8 +17,7 @@ jwt_token = str(encoded, 'ascii')
 @hooks.before_each
 def add_api_key(transaction):
     # Run DB fixture
-    subprocess.run(['docker', 'run', '--rm', '--network imgm_default', '-v $PWD/tests:/usr/src/app/tests',
-                    'local/db_fixture:latest'])
+    subprocess.run(['docker', 'run', '--rm', '--network imgm_default', 'local/db_fixture:latest'])
 
     # Substitute Authorization with actual token
     auth = 'Bearer ' + jwt_token

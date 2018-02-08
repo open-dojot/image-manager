@@ -9,15 +9,18 @@ services:
   - docker
 
 before_install:
+- npm install -g dredd@x.x.x
 - docker pull postgres:9.4
 - docker pull minio/minio
 - docker-compose -f local/compose.yml -p imgm up -d
 - docker build -f Dockerfile -t local/imagemanager .
+- docker build -f tests/Dockerfile -t local/db_fixture .
 - docker run -d --network imgm_default -p 8000:5000 local/imagemanager
 
 install:
 - pip3 install -r requirements/test_requirements.txt
 
 script:
+- dredd docs/api.apib http://localhost:8000 --language=python --hookfiles=tests/*_hooks.py
 - cd tests
 - python3 client.py
