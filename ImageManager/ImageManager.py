@@ -48,7 +48,7 @@ def get_image(imageid):
         init_tenant_context(request, db, minioClient)
         orm_image = assert_image_exists(imageid)
         result = image_schema.dump(orm_image)
-        return make_response(json.dumps(result), 200)
+        return make_response(jsonify(result), 200)
     except HTTPRequestError as e:
         if isinstance(e.message, dict):
             return make_response(json.dumps(e.message), e.error_code)
@@ -62,6 +62,8 @@ def get_image_binary(imageid):
         tenant = init_tenant_context(request, db, minioClient)
         orm_image = assert_image_exists(imageid)
         filename = imageid + '.hex'
+        if not orm_image.confirmed:
+            raise HTTPRequestError(404, "Image does not have an binary file")
         minioClient.fget_object(tenant, filename, os.path.join('/tmp/', filename))
         return send_from_directory(directory='/tmp/', filename=filename)
 
@@ -85,7 +87,7 @@ def delete_image(imageid):
         db.session.commit()
 
         result = json.dumps({'result': 'ok', 'removed_image': data})
-        return make_response(result, 200)
+        return make_response(jsonify(result), 200)
     except HTTPRequestError as e:
         if isinstance(e.message, dict):
             return make_response(json.dumps(e.message), e.error_code)
@@ -102,8 +104,8 @@ def delete_image_binary(imageid):
         orm_image.confirmed = False
         db.session.commit()
 
-        result = json.dumps({'result': 'ok'})
-        return make_response(result, 200)
+        # result = json.dumps({'result': 'ok'})
+        return make_response(jsonify({'result': 'ok'}), 200)
     except HTTPRequestError as e:
         if isinstance(e.message, dict):
             return make_response(json.dumps(e.message), e.error_code)
@@ -129,10 +131,13 @@ def create_image():
             handle_consistency_exception(error)
 
         else:
-            result = {'message': 'image created, awaiting upload',
-                      'uuid': imageid}
+            result = {
+                "label": orm_image.label,
+                "published_at": orm_image.created,
+                "url": '/image/' + imageid
+            }
 
-        return make_response(json.dumps(result), 200)
+        return make_response(jsonify(result), 201, {'location': '/image/' + imageid})
 
     except HTTPRequestError as e:
         if isinstance(e.message, dict):
@@ -151,6 +156,11 @@ def upload_image(imageid):
 
         orm_image.confirmed = True
         file_data = parse_form_payload(request)
+
+        for f in file_data:
+            print(f)
+
+        file_data.seek(0)
         sha1 = calculate_sha1(file_data)
         if sha1 != orm_image.sha1:
             raise HTTPRequestError(400, "Corrupted image. Invalid SHA1")
@@ -173,7 +183,7 @@ def upload_image(imageid):
         else:
             result = {'message': 'image uploaded', 'image': imageid}
 
-        return make_response(json.dumps(result), 200)
+        return make_response(jsonify(result), 200)
 
     except HTTPRequestError as e:
         db.session.rollback()

@@ -5,4 +5,4 @@ ADD . /usr/src/app/tests
 
 RUN pip install -r requirements/test_requirements.txt
 
-CMD ["python", "db_fixture.py"]
+CMD ["python", "tests/db_fixture.py"]

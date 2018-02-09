@@ -40,12 +40,12 @@ payload = {
 }
 headers = {'Authorization': 'Bearer ' + jwt_token}
 r = requests.post(base_url, json=payload, headers=headers)
-assert r.status_code == requests.codes.ok
+assert r.status_code == requests.codes.created
 print(r.text)
 
 # Get url
-image_id = json.loads(r.text)['uuid']
-image_url = urllib.parse.urljoin(base_url, image_id)
+image_url = json.loads(r.text)['url']
+image_url = urllib.parse.urljoin(base_url, image_url)
 binary_url = urllib.parse.urljoin(image_url + "/", "binary")
 print(image_url)
 print(binary_url)

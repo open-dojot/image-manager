@@ -4,6 +4,7 @@ import time
 import datetime
 
 import subprocess
+from subprocess import CalledProcessError
 
 service = 'admin'
 encode_data = {'userid': 1, 'name': 'Admin (superuser)', 'groups': [1], 'iat': 1517339633, 'exp': 1517340053,
@@ -17,7 +18,12 @@ jwt_token = str(encoded, 'ascii')
 @hooks.before_each
 def add_api_key(transaction):
     # Run DB fixture
-    subprocess.run(['docker', 'run', '--rm', '--network imgm_default', 'local/db_fixture:latest'])
+    try:
+        proc = subprocess.run(['docker', 'run', '--rm', '--network', 'imgm_default', 'local/db_fixture:latest'],
+                              check=True)
+    except CalledProcessError as err:
+        print(err.stdout)
+        raise
 
     # Substitute Authorization with actual token
     auth = 'Bearer ' + jwt_token

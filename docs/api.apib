@@ -54,32 +54,45 @@ Creates a new image based on a JSON object containing the following metadata.
     + Headers
             Authorization: Bearer JWT
     
-        + Body
-            {
-                "label": "FW_Example",
-                "fw_version": "1.0.0",
-                "hw_version": "1.0.0",
-                "sha1": "asdasdafasfdas"
-            },
+    + Body
+        {
+            "label": "FW_Example",
+            "fw_version": "1.0.0",
+            "hw_version": "1.0.0",
+            "sha1": "cf23df2207d99a74fbe169e3eba035e633b65d94"
+        }
 
 
 + Response 201 (application/json)
     + Headers
             Location: /image/asdasdasdasdasdas
 
-    + Body
-
+    + Schema
+    
             {
-                "label": "FW_Example",
-                "published_at": "2014-11-11T08:40:51.620Z",
-                "url": "/image/asdasdasdasdasdas",
+                "$schema": "http://json-schema.org/draft-04/schema#",
+                "id": "http://jsonschema.net",
+                "type": "object",
+                "properties": {
+                    "label": {
+                      "type": "string"
+                    },
+                    "published_at": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string",
+                      "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
+                    }
+                },
+                "required": [ "label","published_at", "url" ]
             }
 
 
 ## Images [/image/{image_id}]
 
 + Parameters
-    + image_id: `08ff7052-2e95-11e3-a1fc-000c294eede0` (guid) - Unique ID
+    + image_id: `b60aa5e9-cbe6-4b51-b76c-08cf8273db07` (guid) - Unique ID
 
 ### Retrieve a single image metadata [GET]
 + Request
@@ -92,8 +105,8 @@ Creates a new image based on a JSON object containing the following metadata.
                 "label": "FW_Example",
                 "fw_version": "1.0.0",
                 "hw_version": "1.0.0",
-                "sha1": "asdasdafasfdas"
-            },
+                "sha1": "cf23df2207d99a74fbe169e3eba035e633b65d94"
+            }
 
 
 ### Delete [DELETE]
@@ -101,13 +114,13 @@ Creates a new image based on a JSON object containing the following metadata.
     + Headers
             Authorization: Bearer JWT
             
-+ Response 204
++ Response 200
 
 
 ## Image Binaries [/image/{image_id}/binary]
 
 + Parameters
-    + image_id: `08ff7052-2e95-11e3-a1fc-000c294eede0` (guid) - Unique ID
+    + image_id: `b60aa5e9-cbe6-4b51-b76c-08cf8273db07` (guid) - Unique ID
 
 ### Retrieve a single image binary [GET]
 + Request
@@ -121,16 +134,28 @@ Creates a new image based on a JSON object containing the following metadata.
     + Headers
             Authorization: Bearer JWT
             
-+ Response 204
++ Response 200
 
 ### Add binary to an existing image [POST]
 
-+ Request (multipart/form)
++ Parameters
+    + image_id: `51b39543-9de1-4751-9fe2-48c8d6038ba1` (guid) - Unique ID
+    
+    
+    
++ Request (multipart/form-data;boundary=BOUNDARY)
     + Headers
             Authorization: Bearer JWT
-        + Part
-            + name:image
+            
+    + Body
+        
+            --BOUNDARY
+            Content-Disposition: form-data; name="image"; filename="image.hex"
+            Content-Type: application/octet-stream
 
+            0123456789
+            --BOUNDARY--
+            
 
-+ Response 201
++ Response 200
 
