@@ -1,8 +1,16 @@
 FROM local/imagemanager:latest
+WORKDIR /usr/src/app
+ADD . /usr/src/app
 
-WORKDIR /usr/src/app/tests
-ADD . /usr/src/app/tests
+# install npm
+RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - && apt-get install -yq nodejs build-essential
+
+# fix npm - not the latest version installed by apt-get
+RUN npm install -g npm
+
+# install dredd
+RUN npm install --unsafe-perm -g dredd
 
 RUN pip install -r requirements/test_requirements.txt
 
-CMD ["python", "tests/db_fixture.py"]
+CMD ["dredd", "docs/api.apib", "http://image-manager:5000", "--language=python", "--hookfiles=tests/*_hooks.py"]
