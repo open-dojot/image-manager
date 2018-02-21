@@ -9,15 +9,10 @@ services:
   - docker
 
 before_install:
-- docker pull postgres:9.4
-- docker pull minio/minio
 - docker-compose -f local/compose.yml -p imgm up -d
 - docker build -f Dockerfile -t local/imagemanager .
-- docker run -d --network imgm_default -p 8000:5000 local/imagemanager
-
-install:
-- pip3 install -r requirements/test_requirements.txt
+- docker build -f tests/Dockerfile -t local/db_fixture .
+- docker run -d --network imgm_default --network-alias image-manager local/imagemanager
 
 script:
-- cd tests
-- python3 client.py
+- docker run --network imgm_default local/db_fixture

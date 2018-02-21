@@ -39,9 +39,12 @@ def allowed_file(filename):
 def parse_form_payload(request):
     # Validate http header info
     content_type = request.headers.get('Content-Type')
-    if (content_type is None) or (
-            "multipart/form-data" not in content_type) or not request.files:
-        raise HTTPRequestError(400, "Payload must be valid multipart/form-data")
+    if (content_type is None) or ("multipart/form-data" not in content_type):
+        raise HTTPRequestError(400, "Payload must be valid multipart/form-data, not: {}".format(
+            request.headers.get('Content-Type')))
+
+    if not request.files:
+        raise HTTPRequestError(400, "Payload must contain a file")
 
     # Validate incoming file
     if 'image' not in request.files:
@@ -67,7 +70,9 @@ def parse_json_payload(request, schema):
         raise HTTPRequestError(400, "Payload must be valid JSON, and Content-Type set accordingly")
 
     try:
+        print(json_payload)
         data = schema.load(json_payload)
+        print(data)
     except ValidationError as error:
         results = {'message': 'failed to parse input', 'errors': error.messages}
         raise HTTPRequestError(400, results)
