@@ -44,6 +44,15 @@ def run():
     db.session.add(orm_image)
     db.session.commit()
 
+    # Store Third object with wrong SHA1
+    id = "c929e347-0cd3-4925-a9ed-44ec59f7a1b9"
+    data = image_schema.load(payload)
+    data['id'] = id
+    data['sha1'] = "87acec17cd9dcd20a716cc2cf67417b71c8a0000"
+    orm_image = Image(**data)
+    db.session.add(orm_image)
+    db.session.commit()
+
 
 if __name__ == "__main__":
     run()
