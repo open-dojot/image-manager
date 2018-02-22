@@ -141,6 +141,24 @@ images with missing metadata fields will return an error
             }
 
 
+## Binary Collection [/image/binary/]
+
+### Send Request any with no credentials [GET]
+
+### List All Binaries [GET]
+
++ Request
+    + Headers
+            Authorization: Bearer JWT
+        
++ Response 200 (application/json)
+    + Body
+    
+            [
+              "b60aa5e9-cbe6-4b51-b76c-08cf8273db07.hex"
+            ]
+
+
 
 ## Images [/image/{image_id}]
 

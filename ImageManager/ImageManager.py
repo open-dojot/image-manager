@@ -41,6 +41,20 @@ def get_all():
         else:
             return format_response(e.error_code, e.message)
 
+@image.route('/image/binary/', methods=['GET'])
+def get_all_binaries():
+    try:
+        tenant = init_tenant_context(request, db, minioClient)
+        images = minioClient.list_objects(tenant)
+        image_list = [i.object_name for i in images]
+        return make_response(jsonify(image_list), 200)
+    except HTTPRequestError as e:
+        if isinstance(e.message, dict):
+            return make_response(jsonify(e.message), e.error_code)
+        else:
+            return format_response(e.error_code, e.message)
+
+
 
 @image.route('/image/<imageid>', methods=['GET'])
 def get_image(imageid):
