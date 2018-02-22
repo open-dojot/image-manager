@@ -10,6 +10,18 @@ Simple CRUD service for storing firmware image metadata and binaries
 
 ## Image Collection [/image/]
 
+### Send Request any with no credentials [GET]
+
++ Response 401 (application/json)
+    + Body
+    
+            {
+              "message": "No authorization token has been supplied",
+              "status": 401
+            }
+
+
+
 ### List All Images [GET]
 
 + Request
@@ -19,26 +31,28 @@ Simple CRUD service for storing firmware image metadata and binaries
         
 + Response 200 (application/json)
     + Body
-        [
-          {
-            "created": "2018-02-08T12:25:11.979313+00:00",
-            "hw_version": "1.0.0-revA",
-            "confirmed": true,
-            "label": "ExampleFW",
-            "fw_version": "1.0.0-rc1",
-            "sha1": "cf23df2207d99a74fbe169e3eba035e633b65d94",
-            "id": "b60aa5e9-cbe6-4b51-b76c-08cf8273db07"
-          },
-          {
-            "created": "2018-02-08T12:25:11.998107+00:00",
-            "hw_version": "1.0.0-revA",
-            "confirmed": false,
-            "label": "ExampleFW",
-            "fw_version": "1.0.0-rc1",
-            "sha1": "cf23df2207d99a74fbe169e3eba035e633b65d94",
-            "id": "51b39543-9de1-4751-9fe2-48c8d6038ba1"
-          }
-        ]
+    
+            [
+                  {
+                    "created": "2018-02-08T12:25:11.979313+00:00",
+                    "hw_version": "1.0.0-revA",
+                    "confirmed": true,
+                    "label": "ExampleFW",
+                    "fw_version": "1.0.0-rc1",
+                    "sha1": "cf23df2207d99a74fbe169e3eba035e633b65d94",
+                    "id": "b60aa5e9-cbe6-4b51-b76c-08cf8273db07"
+                  },
+                  {
+                    "created": "2018-02-08T12:25:11.998107+00:00",
+                    "hw_version": "1.0.0-revA",
+                    "confirmed": false,
+                    "label": "ExampleFW",
+                    "fw_version": "1.0.0-rc1",
+                    "sha1": "cf23df2207d99a74fbe169e3eba035e633b65d94",
+                    "id": "51b39543-9de1-4751-9fe2-48c8d6038ba1"
+                  }
+            ]
+
 
 
 ### Create a New Image [POST]
@@ -55,12 +69,13 @@ Creates a new image based on a JSON object containing the following metadata.
             Authorization: Bearer JWT
     
     + Body
-        {
-            "label": "FW_Example",
-            "fw_version": "1.0.0",
-            "hw_version": "1.0.0",
-            "sha1": "cf23df2207d99a74fbe169e3eba035e633b65d94"
-        }
+    
+            {
+                "label": "FW_Example",
+                "fw_version": "1.0.0",
+                "hw_version": "1.0.0",
+                "sha1": "cf23df2207d99a74fbe169e3eba035e633b65d94"
+            }
 
 
 + Response 201 (application/json)
@@ -87,6 +102,35 @@ Creates a new image based on a JSON object containing the following metadata.
                 },
                 "required": [ "label","published_at", "url" ]
             }
+
+All fields are required, 
+images with missing metadata fields will return an error
+
++ Request (application/json)
+    + Headers
+            Authorization: Bearer JWT
+    
+    + Body
+    
+            {
+                "fw_version": "1.0.0",
+                "hw_version": "1.0.0",
+                "sha1": "cf23df2207d99a74fbe169e3eba035e633b65d94"
+            }
+
++ Response 400 (application/json)
+    + Body
+    
+            {
+                "message": "failed to parse input",
+                "errors": {
+                "label": [
+                      "Missing data for required field."
+                    ]
+                }
+            }
+
+
 
 
 ## Images [/image/{image_id}]
@@ -157,5 +201,37 @@ Creates a new image based on a JSON object containing the following metadata.
             --BOUNDARY--
             
 
-+ Response 200
++ Response 200 (application/json)
+
+
+### Posting an binary to a non-existing [POST]
+
++ Parameters
+    + image_id: `51b39543-9de1-4751-9fe2-1asdasdsss4` (guid) - Unique ID
+    
+    
+    
++ Request (multipart/form-data;boundary=BOUNDARY)
+    + Headers
+            Authorization: Bearer JWT
+            
+    + Body
+        
+            --BOUNDARY
+            Content-Disposition: form-data; name="image"; filename="image.hex"
+            Content-Type: application/octet-stream
+
+            0123456789
+            --BOUNDARY--
+            
+
++ Response 404 (application/json)
+    + Body
+            
+            {
+                "message": "No such image: 51b39543-9de1-4751-9fe2-1asdasdsss4",
+                "status": 404
+            }
+
+
 
