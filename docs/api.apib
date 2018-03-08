@@ -10,18 +10,6 @@ Simple CRUD service for storing firmware image metadata and binaries
 
 ## Image Collection [/image/]
 
-### Send Request any with no credentials [GET]
-
-+ Response 401 (application/json)
-    + Body
-    
-            {
-              "message": "No authorization token has been supplied",
-              "status": 401
-            }
-
-
-
 ### List All Images [GET]
 
 + Request
@@ -63,11 +51,23 @@ Simple CRUD service for storing firmware image metadata and binaries
 
             ]
 
++ Request With no Authorization
+    + Headers
+            
++ Response 401 (application/json)
+    + Body
+    
+            {
+              "message": "No authorization token has been supplied",
+              "status": 401
+            }
 
 
 ### Create a New Image [POST]
 
-Creates a new image based on a JSON object containing the following metadata.
+Creates a new image based on a JSON object containing the following metadata. 
+All fields are required, images with missing metadata fields will return an error
+
 
 + label (string) - An informative human-readable label
 + fw_version (string) - FW Semantic versioning info
@@ -113,10 +113,7 @@ Creates a new image based on a JSON object containing the following metadata.
                 "required": [ "label","published_at", "url" ]
             }
 
-All fields are required, 
-images with missing metadata fields will return an error
-
-+ Request (application/json)
++ Request With Missing Fields (application/json)
     + Headers
             Authorization: Bearer JWT
     
@@ -142,8 +139,6 @@ images with missing metadata fields will return an error
 
 
 ## Binary Collection [/image/binary/]
-
-### Send Request any with no credentials [GET]
 
 ### List All Binaries [GET]
 
@@ -232,7 +227,7 @@ images with missing metadata fields will return an error
 + Response 200 (application/json)
 
 
-### Posting an binary to a non-existing [POST]
+### Posting an binary to a non-existing image [POST]
 
 + Parameters
     + image_id: `51b39543-9de1-4751-9fe2-1asdasdsss4` (guid) - Unique ID
