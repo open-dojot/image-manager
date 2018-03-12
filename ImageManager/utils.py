@@ -1,6 +1,7 @@
 """ Assorted utils used throughout the service """
 
 import json
+from flask import jsonify
 import random
 import hashlib
 from flask import make_response
@@ -9,11 +10,11 @@ from flask import make_response
 def format_response(status, message=None):
     """ Utility helper to generate default status responses """
     if message:
-        payload = json.dumps({'message': message, 'status': status})
+        payload = jsonify({'message': message, 'status': status})
     elif 200 <= status < 300:
-        payload = json.dumps({'message': 'ok', 'status': status})
+        payload = jsonify({'message': 'ok', 'status': status})
     else:
-        payload = json.dumps({'message': 'Request failed', 'status': status})
+        payload = jsonify({'message': 'Request failed', 'status': status})
 
     return make_response(payload, status)
 

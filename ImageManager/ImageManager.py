@@ -37,9 +37,23 @@ def get_all():
         return make_response(jsonify(json_images), 200)
     except HTTPRequestError as e:
         if isinstance(e.message, dict):
-            return make_response(json.dumps(e.message), e.error_code)
+            return make_response(jsonify(e.message), e.error_code)
         else:
             return format_response(e.error_code, e.message)
+
+@image.route('/image/binary/', methods=['GET'])
+def get_all_binaries():
+    try:
+        tenant = init_tenant_context(request, db, minioClient)
+        images = minioClient.list_objects(tenant)
+        image_list = [i.object_name for i in images]
+        return make_response(jsonify(image_list), 200)
+    except HTTPRequestError as e:
+        if isinstance(e.message, dict):
+            return make_response(jsonify(e.message), e.error_code)
+        else:
+            return format_response(e.error_code, e.message)
+
 
 
 @image.route('/image/<imageid>', methods=['GET'])
@@ -51,7 +65,7 @@ def get_image(imageid):
         return make_response(jsonify(result), 200)
     except HTTPRequestError as e:
         if isinstance(e.message, dict):
-            return make_response(json.dumps(e.message), e.error_code)
+            return make_response(jsonify(e.message), e.error_code)
         else:
             return format_response(e.error_code, e.message)
 
@@ -69,7 +83,7 @@ def get_image_binary(imageid):
 
     except HTTPRequestError as e:
         if isinstance(e.message, dict):
-            return make_response(json.dumps(e.message), e.error_code)
+            return make_response(jsonify(e.message), e.error_code)
         else:
             return format_response(e.error_code, e.message)
 
@@ -90,7 +104,7 @@ def delete_image(imageid):
         return make_response(jsonify(result), 200)
     except HTTPRequestError as e:
         if isinstance(e.message, dict):
-            return make_response(json.dumps(e.message), e.error_code)
+            return make_response(jsonify(e.message), e.error_code)
         else:
             return format_response(e.error_code, e.message)
 
@@ -104,11 +118,10 @@ def delete_image_binary(imageid):
         orm_image.confirmed = False
         db.session.commit()
 
-        # result = json.dumps({'result': 'ok'})
         return make_response(jsonify({'result': 'ok'}), 200)
     except HTTPRequestError as e:
         if isinstance(e.message, dict):
-            return make_response(json.dumps(e.message), e.error_code)
+            return make_response(jsonify(e.message), e.error_code)
         else:
             return format_response(e.error_code, e.message)
 
@@ -141,7 +154,7 @@ def create_image():
 
     except HTTPRequestError as e:
         if isinstance(e.message, dict):
-            return make_response(json.dumps(e.message), e.error_code)
+            return make_response(jsonify(e.message), e.error_code)
         else:
             return format_response(e.error_code, e.message)
 
@@ -188,7 +201,7 @@ def upload_image(imageid):
     except HTTPRequestError as e:
         db.session.rollback()
         if isinstance(e.message, dict):
-            return make_response(json.dumps(e.message), e.error_code)
+            return make_response(jsonify(e.message), e.error_code)
         else:
             return format_response(e.error_code, e.message)
 
