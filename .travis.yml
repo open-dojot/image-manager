@@ -16,3 +16,6 @@ before_install:
 
 script:
 - docker run --network imgm_default local/db_fixture
+
+after_success:
+  - travis/publish.sh
