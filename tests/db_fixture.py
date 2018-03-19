@@ -21,7 +21,6 @@ def run():
     payload = {
         "label": "ExampleFW",
         "fw_version": "1.0.0-rc1",
-        "hw_version": "1.0.0-revA",
         "sha1": "87acec17cd9dcd20a716cc2cf67417b71c8a7016",
         "confirmed": False
     }

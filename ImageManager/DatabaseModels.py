@@ -25,12 +25,11 @@ class Image(db.Model):
     updated = db.Column(db.DateTime, onupdate=datetime.now)
 
     fw_version = db.Column(db.String(128), nullable=False)
-    hw_version = db.Column(db.String(128), nullable=False)
     sha1 = db.Column(db.String(40), nullable=False)
     confirmed = db.Column(db.Boolean, default=False, nullable=False)
 
     def __repr__(self):
-        return "<Image(label={}, fw_version={}, hw_version={})>".format(self.label, self.fw_version, self.hw_version)
+        return "<Image(label={}, fw_version={})>".format(self.label, self.fw_version)
 
 
 def assert_image_exists(image_id):
