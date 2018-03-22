@@ -4,12 +4,19 @@ if [ $1 = 'start' ]; then
     retries=0
     max_retries=5
     sleep_time=5
+
+    docker/waitForDb.py -w ${sleep_time} -r ${max_retries}
+    if [ $? -ne 0 ]; then
+        echo "Could not connect to DB, shutting down!"
+        exit 1
+    fi
+
     while [ $flag -eq 0 ]; do
         if [ $retries -eq $max_retries ]; then
             echo Executed $retries retries, aborting
             exit 1
         fi
-        docker/waitForDb.py
+
         exec gunicorn ImageManager.main:app \
                   --bind 0.0.0.0:5000 \
                   --reload -R \
