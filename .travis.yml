@@ -5,17 +5,25 @@ language: python
 python:
   - "3.5"
 
+cache:
+  directories:
+  - node_modules
+
 services:
   - docker
 
+install:
+  - npm install aglio
+
 before_install:
-- docker-compose -f local/compose.yml -p imgm up -d
-- docker build -f Dockerfile -t local/imagemanager .
-- docker build -f tests/Dockerfile -t local/db_fixture .
-- docker run -d --network imgm_default --network-alias image-manager local/imagemanager
+  - docker-compose -f local/compose.yml -p imgm up -d
+  - docker build -f Dockerfile -t local/imagemanager .
+  - docker build -f tests/Dockerfile -t local/db_fixture .
+  - docker run -d --network imgm_default --network-alias image-manager local/imagemanager
 
 script:
-- docker run --network imgm_default local/db_fixture
+  - docker run --network imgm_default local/db_fixture
 
 after_success:
   - travis/publish.sh
+  - travis/deploy-gh-pages.sh
