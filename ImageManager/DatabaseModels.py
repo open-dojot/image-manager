@@ -5,7 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 from .app import app
 from .utils import HTTPRequestError
 from .conf import CONFIG
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, InvalidRequestError
 from minio import Minio
 
 app.config['SQLALCHEMY_DATABASE_URI'] = CONFIG.get_db_url()
@@ -41,6 +41,12 @@ def assert_image_exists(image_id):
 
 def get_all_images():
     return Image.query.all()
+
+def get_all_images_filter(label):
+    try:
+        return Image.query.filter_by(**label).all()
+    except InvalidRequestError:
+        raise HTTPRequestError(400, 'Invalid query param supplied')
 
 
 def handle_consistency_exception(error):

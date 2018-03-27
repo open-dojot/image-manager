@@ -28,11 +28,11 @@ LOGGER.addHandler(logging.StreamHandler())
 LOGGER.setLevel(logging.DEBUG)
 
 
-@image.route('/image/', methods=['GET'])
+@image.route('/image', methods=['GET'])
 def get_all():
     try:
         init_tenant_context(request, db, minioClient)
-        images = get_all_images()
+        images = get_all_images_filter(request.args.to_dict())
         json_images = [image_schema.dump(i) for i in images]
         return make_response(jsonify(json_images), 200)
     except HTTPRequestError as e:
