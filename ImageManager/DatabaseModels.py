@@ -12,7 +12,6 @@ app.config['SQLALCHEMY_DATABASE_URI'] = CONFIG.get_db_url()
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-
 minioClient = Minio(CONFIG.s3url, CONFIG.s3user, CONFIG.s3pass, secure=False)
 
 
@@ -25,7 +24,6 @@ class Image(db.Model):
     updated = db.Column(db.DateTime, onupdate=datetime.now)
 
     fw_version = db.Column(db.String(128), nullable=False)
-    sha1 = db.Column(db.String(40), nullable=False)
     confirmed = db.Column(db.Boolean, default=False, nullable=False)
 
     def __repr__(self):
@@ -41,6 +39,7 @@ def assert_image_exists(image_id):
 
 def get_all_images():
     return Image.query.all()
+
 
 def get_all_images_filter(label):
     try:
