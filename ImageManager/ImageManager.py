@@ -41,6 +41,7 @@ def get_all():
         else:
             return format_response(e.error_code, e.message)
 
+
 @image.route('/image/binary/', methods=['GET'])
 def get_all_binaries():
     try:
@@ -53,7 +54,6 @@ def get_all_binaries():
             return make_response(jsonify(e.message), e.error_code)
         else:
             return format_response(e.error_code, e.message)
-
 
 
 @image.route('/image/<imageid>', methods=['GET'])
@@ -172,11 +172,6 @@ def upload_image(imageid):
 
         for f in file_data:
             print(f)
-
-        file_data.seek(0)
-        sha1 = calculate_sha1(file_data)
-        if sha1 != orm_image.sha1:
-            raise HTTPRequestError(400, "Corrupted image. Invalid SHA1")
 
         extension = file_data.filename.rsplit('.', 1)[1].lower()
         filename = imageid + '.' + extension

@@ -29,7 +29,6 @@ Simple CRUD service for storing firmware image metadata and binaries
                     "confirmed": true,
                     "label": "ExampleFW",
                     "fw_version": "1.0.0-rc1",
-                    "sha1": "cf23df2207d99a74fbe169e3eba035e633b65d94",
                     "id": "b60aa5e9-cbe6-4b51-b76c-08cf8273db07"
                   },
                   {
@@ -37,7 +36,6 @@ Simple CRUD service for storing firmware image metadata and binaries
                     "confirmed": false,
                     "label": "ExampleFW",
                     "fw_version": "1.0.0-rc1",
-                    "sha1": "cf23df2207d99a74fbe169e3eba035e633b65d94",
                     "id": "51b39543-9de1-4751-9fe2-48c8d6038ba1"
                   },
                   {
@@ -45,8 +43,7 @@ Simple CRUD service for storing firmware image metadata and binaries
                     "created": "2018-02-22T21:30:39.740576+00:00",
                     "fw_version": "1.0.0-rc1",
                     "id": "c929e347-0cd3-4925-a9ed-44ec59f7a1b9",
-                    "label": "ExampleFW",
-                    "sha1": "87acec17cd9dcd20a716cc2cf67417b71c8a0000"
+                    "label": "ExampleFW"
                   }
 
             ]
@@ -71,7 +68,6 @@ All fields are required, images with missing metadata fields will return an erro
 
 + label (string) - An informative human-readable label
 + fw_version (string) - FW Semantic versioning info
-+ sha1 (string) - Expected SHA1 of the image binary, used for consistency
 
 + Request (application/json)
     + Headers
@@ -81,8 +77,7 @@ All fields are required, images with missing metadata fields will return an erro
 
             {
                 "label": "FW_Example",
-                "fw_version": "1.0.0",
-                "sha1": "cf23df2207d99a74fbe169e3eba035e633b65d94"
+                "fw_version": "1.0.0"
             }
 
 
@@ -118,8 +113,7 @@ All fields are required, images with missing metadata fields will return an erro
     + Body
 
             {
-                "fw_version": "1.0.0",
-                "sha1": "cf23df2207d99a74fbe169e3eba035e633b65d94"
+                "fw_version": "1.0.0"
             }
 
 + Response 400 (application/json)
@@ -166,8 +160,7 @@ All fields are required, images with missing metadata fields will return an erro
 
            {
                 "label": "FW_Example",
-                "fw_version": "1.0.0",
-                "sha1": "cf23df2207d99a74fbe169e3eba035e633b65d94"
+                "fw_version": "1.0.0"
             }
 
 
@@ -239,24 +232,4 @@ All fields are required, images with missing metadata fields will return an erro
                 "message": "No such image: 51b39543-9de1-4751-9fe2-1asdasdsss4",
                 "status": 404
             }
-
-### Posting an binary with wrong SHA1 [POST]
-
-+ Parameters
-    + image_id: `c929e347-0cd3-4925-a9ed-44ec59f7a1b9` (guid) - Unique ID
-
-+ Request (multipart/form-data;boundary=BOUNDARY)
-    [Image Binaries][]
-
-
-+ Response 400 (application/json)
-    + Body
-
-            {
-                "message": "Corrupted image. Invalid SHA1",
-                "status": 400
-            }
-
-=
-
 
