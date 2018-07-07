@@ -4,8 +4,8 @@ version="latest"
 if [ ${TRAVIS_BRANCH} != "master" ] ; then
   version=${TRAVIS_BRANCH}
 fi
-tag="dojot/image-manager:${version}"
+tag=${TRAVIS_REPO_SLUG}:$version
 
 docker login -u="${DOCKER_USERNAME}" -p="${DOCKER_PASSWORD}"
-docker tag local/imagemanager ${tag}
-docker push ${tag}
+docker tag ${TRAVIS_REPO_SLUG} ${tag}
+docker push $tag
