@@ -3,8 +3,12 @@ import os
 
 import setuptools
 
-from pip import download
-from pip import req
+try:
+    from pip import req
+    from pip import download
+except ImportError as e:
+    from pip._internal import download
+    from pip._internal import req
 
 
 HERE = os.path.abspath(os.path.dirname(__file__))
