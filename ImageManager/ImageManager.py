@@ -145,6 +145,7 @@ def create_image():
 
         else:
             result = {
+                "id": orm_image.id,
                 "label": orm_image.label,
                 "published_at": orm_image.created,
                 "url": '/image/' + imageid
