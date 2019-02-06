@@ -3,10 +3,7 @@ WORKDIR /usr/src/app
 ADD . /usr/src/app
 
 # install npm
-RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - && apt-get install -yq nodejs build-essential
-
-# fix npm - not the latest version installed by apt-get
-RUN npm install -g npm
+RUN apk update && apk add nodejs npm
 
 # install dredd
 RUN npm install --unsafe-perm -g dredd

@@ -17,9 +17,9 @@ install:
 
 before_install:
   - docker-compose -f local/compose.yml -p imgm up -d
-  - docker build -f Dockerfile -t local/imagemanager .
+  - docker build -t ${TRAVIS_REPO_SLUG} .
   - docker build -f tests/Dockerfile -t local/db_fixture .
-  - docker run -d --network imgm_default --network-alias image-manager local/imagemanager
+  - docker run -d --network imgm_default --network-alias image-manager ${TRAVIS_REPO_SLUG}
 
 script:
   - docker run --network imgm_default local/db_fixture
