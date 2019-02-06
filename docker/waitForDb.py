@@ -1,5 +1,3 @@
-#!/usr/local/bin/python
-
 import psycopg2
 from time import sleep
 import argparse
