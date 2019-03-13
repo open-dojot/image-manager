@@ -3,7 +3,7 @@ WORKDIR /usr/src/app
 ADD . /usr/src/app
 
 # install npm
-RUN apk update && apk add nodejs npm
+RUN apk update && apk add nodejs npm --no-cache
 
 # install dredd
 RUN npm install --unsafe-perm -g dredd
