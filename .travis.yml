@@ -1,23 +1,15 @@
-sudo: required
-
 language: python
 
 python:
-  - "3.5"
-
-cache:
-  directories:
-  - node_modules
+  - 3.6
 
 services:
   - docker
 
-install:
-  - npm install aglio
-
 before_install:
   - docker-compose -f local/compose.yml -p imgm up -d
   - docker build -t ${TRAVIS_REPO_SLUG} .
+  - docker tag ${TRAVIS_REPO_SLUG} local/imagemanager:latest
   - docker build -f tests/Dockerfile -t local/db_fixture .
   - docker run -d --network imgm_default --network-alias image-manager ${TRAVIS_REPO_SLUG}
 
