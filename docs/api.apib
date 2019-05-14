@@ -13,10 +13,11 @@ Simple CRUD service for storing firmware image metadata and binaries
 ### List All Images [GET /image{?label}]
 
 + Parameters
-    + label: (string, optional) Filter returned images by given label
+    + label: "xyz" (string, optional) Filter returned images by given label
 
 + Request
     + Headers
+
             Authorization: Bearer JWT
 
 
@@ -48,10 +49,11 @@ Simple CRUD service for storing firmware image metadata and binaries
 
             ]
 
-+ Request With no Authorization
-    + Headers
-
 + Response 401 (application/json)
+
+    Returned when there is no Authorization header or if it contains an invalid
+    value.
+
     + Body
 
             {
@@ -71,6 +73,7 @@ All fields are required, images with missing metadata fields will return an erro
 
 + Request (application/json)
     + Headers
+
             Authorization: Bearer JWT
 
     + Body
@@ -83,6 +86,7 @@ All fields are required, images with missing metadata fields will return an erro
 
 + Response 201 (application/json)
     + Headers
+
             Location: /image/asdasdasdasdasdas
 
     + Schema
@@ -109,17 +113,10 @@ All fields are required, images with missing metadata fields will return an erro
                 "required": [ "label","published_at", "url" ]
             }
 
-+ Request With Missing Fields (application/json)
-    + Headers
-            Authorization: Bearer JWT
-
-    + Body
-
-            {
-                "fw_version": "1.0.0"
-            }
-
 + Response 400 (application/json)
+
+    Returned when there is missing fields in creation request
+
     + Body
 
             {
@@ -131,6 +128,18 @@ All fields are required, images with missing metadata fields will return an erro
                 }
             }
 
++ Response 401 (application/json)
+
+    Returned when there is no Authorization header or if it contains an invalid
+    value.
+
+    + Body
+
+            {
+              "message": "No authorization token has been supplied",
+              "status": 401
+            }
+
 
 ## Binary Collection [/image/binary/]
 
@@ -138,6 +147,7 @@ All fields are required, images with missing metadata fields will return an erro
 
 + Request
     + Headers
+
             Authorization: Bearer JWT
 
 + Response 200 (application/json)
@@ -146,6 +156,18 @@ All fields are required, images with missing metadata fields will return an erro
             [
               "b60aa5e9-cbe6-4b51-b76c-08cf8273db07.hex"
             ]
+
++ Response 401 (application/json)
+
+    Returned when there is no Authorization header or if it contains an invalid
+    value.
+
+    + Body
+
+            {
+              "message": "No authorization token has been supplied",
+              "status": 401
+            }
 
 
 
@@ -157,6 +179,7 @@ All fields are required, images with missing metadata fields will return an erro
 ### Retrieve a single image metadata [GET]
 + Request
     + Headers
+
             Authorization: Bearer JWT
 
 + Response 200 (application/json)
@@ -166,22 +189,74 @@ All fields are required, images with missing metadata fields will return an erro
                 "fw_version": "1.0.0"
             }
 
++ Response 404 (application/json)
+
+            {
+                "message": "No such image: efac",
+                "status": 404
+            }
+
++ Response 401 (application/json)
+
+    Returned when there is no Authorization header or if it contains an invalid
+    value.
+
+    + Body
+
+            {
+              "message": "No authorization token has been supplied",
+              "status": 401
+            }
 
 ### Delete [DELETE]
 + Request
     + Headers
+
             Authorization: Bearer JWT
 
-+ Response 200
++ Response 200 (application/json)
+
+            {
+            "removed_image": {
+                "confirmed": true,
+                "created": "2019-05-02T20:09:30.981452+00:00",
+                "fw_version": "1.0.0-rc1",
+                "id": "b60aa5e9-cbe6-4b51-b76c-08cf8273db07",
+                "label": "ExampleFW"
+            },
+            "result": "ok"
+            }
+
++ Response 404 (application/json)
+
+            {
+                "message": "No such image: efac",
+                "status": 404
+            }
+
++ Response 401 (application/json)
+
+    Returned when there is no Authorization header or if it contains an invalid
+    value.
+
+    + Body
+
+            {
+              "message": "No authorization token has been supplied",
+              "status": 401
+            }
 
 
 ## Image Binaries [/image/{image_id}/binary]
+All files should have a ".hex" extension.
+
 
 + Parameters
     + image_id: `b60aa5e9-cbe6-4b51-b76c-08cf8273db07` (guid) - Unique ID
 
 + Model (multipart/form-data;boundary=BOUNDARY)
     + Headers
+
             Authorization: Bearer JWT
 
     + Body
@@ -197,16 +272,70 @@ All fields are required, images with missing metadata fields will return an erro
 ### Retrieve a single image binary [GET]
 + Request
     + Headers
+
             Authorization: Bearer JWT
 
 + Response 200 (application/octet-stream)
 
+
++ Response 404 (application/json)
+
+            {
+                "message": "No such image: 57852f31-a906-4d5f-a0c3-fde41ff64d",
+                "status": 404
+            }
+
++ Response 404 (application/json)
+
+            {
+                "message": "Image does not have an binary file",
+                "status": 404
+            }
+
++ Response 401 (application/json)
+
+    Returned when there is no Authorization header or if it contains an invalid
+    value.
+
+    + Body
+
+            {
+              "message": "No authorization token has been supplied",
+              "status": 401
+            }
+
+
+
 ### Delete [DELETE]
 + Request
     + Headers
+
             Authorization: Bearer JWT
 
-+ Response 200
++ Response 200 (application/json)
+
+            {
+                "result": "ok"
+            }
+
++ Response 404 (application/json)
+
+            {
+                "message": "No such image: 57852f31-a906-4d5f-a0c3-fde41ff64d",
+                "status": 404
+            }
+
++ Response 401 (application/json)
+
+    Returned when there is no Authorization header or if it contains an invalid
+    value.
+
+    + Body
+
+            {
+              "message": "No authorization token has been supplied",
+              "status": 401
+            }
 
 ### Add binary to an existing image [POST]
 
@@ -218,21 +347,27 @@ All fields are required, images with missing metadata fields will return an erro
 
 + Response 200 (application/json)
 
-
-### Posting an binary to a non-existing image [POST]
-
-+ Parameters
-    + image_id: `51b39543-9de1-4751-9fe2-1asdasdsss4` (guid) - Unique ID
-
-+ Request (multipart/form-data;boundary=BOUNDARY)
-    [Image Binaries][]
-
+        {
+            "image": "51b39543-9de1-4751-9fe2-48c8d6038ba1",
+            "message": "image uploaded"
+        }
 
 + Response 404 (application/json)
+
+            {
+                "message": "No such image: 57852f31-a906-4d5f-a0c3-fde41ff64d",
+                "status": 404
+            }
+
++ Response 401 (application/json)
+
+    Returned when there is no Authorization header or if it contains an invalid
+    value.
+
     + Body
 
             {
-                "message": "No such image: 51b39543-9de1-4751-9fe2-1asdasdsss4",
-                "status": 404
+              "message": "No authorization token has been supplied",
+              "status": 401
             }
 

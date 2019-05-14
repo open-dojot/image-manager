@@ -100,7 +100,7 @@ def delete_image(imageid):
         db.session.delete(orm_image)
         db.session.commit()
 
-        result = json.dumps({'result': 'ok', 'removed_image': data})
+        result ={'result': 'ok', 'removed_image': data}
         return make_response(jsonify(result), 200)
     except HTTPRequestError as e:
         if isinstance(e.message, dict):
