@@ -11,7 +11,9 @@ then
 else
   export VERSION="${TRAVIS_BRANCH}"
 fi
-docker run --volume $(pwd)/docs:/home/node/apiary:Z giovannicuriel/aglio -i /home/node/apiary/api.apib -o - > ./apiary_${VERSION}.html
+#docker run --volume $(pwd)/docs:/home/node/apiary:Z giovannicuriel/aglio -i /home/node/apiary/api.apib -o - > ./apiary_${VERSION}.html
+
+node_modules/.bin/aglio -i api.apib -o apiary_${VERSION}.html
 
 git add apiary_${VERSION}.html
 git commit -m 'Updating gh-pages'
